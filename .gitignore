@@ -13,7 +13,7 @@
 *.dta
 *.zip
 *.csv
-*.xlsx 
+
 *.docx
 
 ## *.xlsx Because the excel tool deserves a back up
