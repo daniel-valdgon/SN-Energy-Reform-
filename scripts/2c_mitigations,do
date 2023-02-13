@@ -1,0 +1,17 @@
+
+
+*Load data on PNBSF beneficiaries 
+
+use "$path_ceq/output.dta", clear 
+
+keep am_BNSF_pc hhid 
+
+
+
+merge 1:1 hhid using 
+100000
+
+
+
+tempfile mitigation1
+save `mitigation', replace 
