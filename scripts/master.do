@@ -34,6 +34,13 @@ if "`c(username)'"=="WB419055" {
 	global path_ceq  "C:/Users/WB419055/OneDrive - WBG/SenSim Tool/Senegal_tool/Senegal_tool/01. Data"
 	
 } 
+if "`c(username)'"=="andre" {
+global proj "C:\Users\andre\Dropbox\Energy_Reform" // project folder
+*Prepare data on consumption
+global path_raw "$proj/data/raw"
+global path_ceq "$proj/data/raw"
+*global path_ceq  "C:/Users/WB419055/OneDrive - WBG/SenSim Tool/Senegal_tool/Senegal_tool/01. Data"
+} 
 
 
 global p_res	"$proj/results"
