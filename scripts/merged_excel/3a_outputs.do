@@ -69,7 +69,7 @@ save "$p_o/${namexls}.dta", replace
 		}
 		
 		
-	foreach var in all_policies all_tax all_subs {
+	foreach var in all_policies all_tax all_subs all_elec all_fuel {
 		
 		if "`var'"=="all_tax" {
 			gen inc_`var'=yd_pc-`var'_pc 		 // effect of all policies defined as subs-tax 

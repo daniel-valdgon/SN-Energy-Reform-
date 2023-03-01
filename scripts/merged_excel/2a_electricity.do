@@ -32,7 +32,7 @@ Define tranches
 			/*DPP*/ replace tranche1_tool=${tranche1_`type_pay'} if consumption_electricite>=${tranche1_`type_pay'} & type_client==1 & prepaid==`payment'  // $MaxT1_DPP
 			replace tranche1_tool=consumption_electricite if consumption_electricite<${tranche1_`type_pay'}  & type_client==1 & prepaid==`payment'
 			
-			/*DMP*/replace tranche1_tool=${dmp_`type_pay'_tra_t1} if consumption_electricite>=${dmp_`type_pay'_tra_t1} & type_client==2 & prepaid==`payment'
+			/*DMP*/ replace tranche1_tool=${dmp_`type_pay'_tra_t1} if consumption_electricite>=${dmp_`type_pay'_tra_t1} & type_client==2 & prepaid==`payment'
 			replace tranche1_tool=consumption_electricite if consumption_electricite<${dmp_`type_pay'_tra_t1} & type_client==2 & prepaid==`payment'
 			
 			replace tranche1_tool=0 if tranche1_tool==. & prepaid==`payment' // this should not happend 

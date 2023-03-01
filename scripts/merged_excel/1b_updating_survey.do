@@ -45,18 +45,102 @@ save `output', replace
 *----------------Electricity consumption 
  ==============================================================================================*/
 
-use "$path_ceq/2_pre_sim/08_subsidies_elect.dta", clear   
+use "$path_ceq/2_pre_sim/08_subsidies_elect.dta", clear    
+	
+*------------ Defining parameters for stats before and after ------------- 
+*-> Prepaid 
+	global p_dpp_pre_t1 300
+	global p_dpp_pre_t2 500
+	
+	global p_dmp_pre_t1 100
+	global p_dmp_pre_t2 600
+	
+	
+*-> Postpaid 
+	global p_dpp_pos_t1 150
+	global p_dpp_pos_t2 250
+	
+	global p_dmp_pos_t1 50
+	global p_dmp_pos_t2 300
+		
+*------------  saving variable to compute stats before the change 
+clonevar consumption_electricite_before= consumption_electricite  
+clonevar hhweight_before = hhweight  
+clonevar prepaid_before = prepaid_o 
+drop hhweight
+
+	
+*----------- Uprating 
 	ren prepaid_woyofal prepaid 
-	keep hhid prix_electricite consumption_electricite type_client prepaid  periodicite   consumption_DGP  s11q24a   // prepaid_or s00q01 s00q02 s00q04 tranche1 tranche2 tranche3
+	keep hhid prix_electricite consumption_electricite type_client prepaid  periodicite   consumption_DGP  s11q24a *_before   // prepaid_or s00q01 s00q02 s00q04 tranche1 tranche2 tranche3
 	
 	merge 1:1  hhid using `output', keepusing(hhweight hhweight_orig) nogen // weight updated 
 	
 	
 	replace consumption_electricite=consumption_electricite*(4662/3668)/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
 	
+	clonevar consumption_electricite_after =consumption_electricite 
+	clonevar hhweight_after= hhweight 
+	clonevar prepaid_after = prepaid 
+
+	tempfile tmp_for_cal_stats
+	save `tmp_for_cal_stats'
+	
+	drop *_before *_after
 	
 tempfile elec_tmp_dta
 save `elec_tmp_dta', replace 
+
+*------------  Calibration stats 
+
+foreach data in _before _after { 
+	
+	use `tmp_for_cal_stats', clear 
+	gen tranche1_cons=0
+	gen tranche2_cons=0
+	gen tranche3_cons=0
+
+	foreach payment in  0 1 {	
+		
+	if "`payment'"=="1" local freq_pay "pre"
+	else if "`payment'"=="0" local freq_pay "pos"
+	
+			foreach type in 1 2  {
+			
+			if "`type'"=="1" local type_pay "dpp"
+			else if "`type'"=="1" local type_pay "dmp"
+					
+					replace tranche1_cons=consumption_electricite`data' if consumption_electricite`data'<=${p_`type_pay'_`freq_pay'_t1} & consumption_DGP==0  & type_client==`type' & prepaid`data'==`payment'
+					
+					replace tranche2_cons=consumption_electricite`data' if consumption_electricite`data'<=${p_`type_pay'_`freq_pay'_t2} & consumption_electricite`data'>${p_`type_pay'_`freq_pay'_t1} &  consumption_DGP==0  & type_client==`type' & prepaid`data'==`payment'
+					
+					replace tranche3_cons=consumption_electricite`data' if consumption_electricite`data'>${p_`type_pay'_`freq_pay'_t2} &  consumption_DGP==0  & type_client==`type' & prepaid`data'==`payment'
+					
+			}
+		
+	}
+	
+	drop consumption_electricite 
+	ren consumption_electricite`data' consumption_electricite 
+	drop prepaid
+	ren prepaid`data' prepaid
+	foreach v in consumption_electricite tranche3_cons tranche2_cons tranche1_cons  {
+		replace `v'=`v'*6/1000000
+	}
+
+	gen type=type_client ==1 if type_client!=. 
+	gen subs=1 if consumption_electricite!=0
+	gcollapse (sum) consumption_electricite tranche3_cons tranche2_cons tranche1_cons type subs (mean) prepaid [iw=hhweight`data']
+		
+	gen data="`data'"
+	
+	tempfile raw_data_stats`data'
+	save `raw_data_stats`data'', replace
+}
+
+use `raw_data_stats_before'
+append using `raw_data_stats_after'
+
 
 /*===============================================================================================
 *----------------Fuel 
@@ -88,12 +172,13 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		replace fixed=1  if inlist( Secteur, 22, 32, 33, 34, 13)
 		
 		*Shock of fuel subsidies 
-		local gasoil_sub_svy= (-1)*((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // This prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference 
-		//The cost structure of 2019 reports a selling price of 497 for Essence pirogue, not 469 as seen above.
+		local gasoil_sub_svy= (-1)*((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // This prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference
 		dis `gasoil_sub_svy'
 		
+		*local subsidy_firms_base = -(124.4-113.11)/124.4  // tariffs from Petra xls for 2020, weighted using IMF weights 
+		*local share_elec_io_base "0.664" // Share of electricity in the IO sector 
 		local subsidy_firms_base = -(124.4-113.11)/124.4  // tariffs from Petra xls for 2020, weighted using IMF weights 
-		local share_elec_io_base "0.664" // Share of electricity in the IO sector 
+		local share_elec_io_base $share_elec_io_base // Share of electricity in the IO sector 
 		
 		gen 	shock=`gasoil_sub_svy' if inlist(Secteur, 13) // fuel sector 
 		replace shock=`subsidy_firms_base'*`share_elec_io_base' if Secteur==22

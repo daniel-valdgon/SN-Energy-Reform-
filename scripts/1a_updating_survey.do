@@ -141,6 +141,8 @@ foreach data in _before _after {
 use `raw_data_stats_before'
 append using `raw_data_stats_after'
 
+exportar a excel para comparar los momentos que deberían match (hacer esta comparación fuera de la tool)
+
 
 /*===============================================================================================
 *----------------Fuel 
