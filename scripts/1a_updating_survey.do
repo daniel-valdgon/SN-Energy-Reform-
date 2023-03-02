@@ -141,7 +141,7 @@ foreach data in _before _after {
 use `raw_data_stats_before'
 append using `raw_data_stats_after'
 
-exportar a excel para comparar los momentos que deberían match (hacer esta comparación fuera de la tool)
+*exportar a excel para comparar los momentos que deberían match (hacer esta comparación fuera de la tool)
 
 
 /*===============================================================================================
@@ -170,18 +170,21 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 	import excel "$path_raw/IO_Matrix.xlsx", sheet("IO_aij") firstrow clear
 		
 		*Define fixed sectors 
+		local thefixed 22 32 33 34 13 // education healt ad pub oil and electricity
 		gen fixed=0
-		replace fixed=1  if inlist( Secteur, 22, 32, 33, 34, 13)
+		foreach var of local thefixed {
+			replace fixed=1  if  Secteur==`var'
+		}
+		
 		
 		*Shock of fuel subsidies 
-		local gasoil_sub_svy= (-1)*((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // This prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference
-		
-		
-		local subsidy_firms_base = -(124.4-113.11)/124.4  // tariffs from Petra xls for 2020, weighted using IMF weights 
+		local subsidy_firms_base = (125.9-115.2)/125.9  // tariffs from Petra xls for 2020, weighted using IMF weights 
+		local gasoil_sub_svy= ((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // This prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference
 		local share_elec_io_base "0.664" // Share of electricity in the IO sector 
 		
-		gen 	shock=`gasoil_sub_svy' if inlist(Secteur, 13) // fuel sector 
-		replace shock=`subsidy_firms_base'*`share_elec_io_base' if Secteur==22
+		
+		gen 	shock=`gasoil_sub_svy' if  Secteur==13 // fuel sector 
+		replace shock=`subsidy_firms_base'*`share_elec_io_base' if Secteur==22 // electricity sector 
 		
 		replace shock=0  if shock==.
 		
@@ -212,10 +215,14 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		
 		merge m:1 codpr using `Xwalk_IO_est_fuel_yr' , assert(matched using) keep(matched) nogen  
 		
-		*Spending in real prices of the simulated year 
-		replace depan=depan*1.025*1.022*1.087
 		*Substracting indirect effects 
 		gen depan_net_sub=depan/(1-pind_shock)
+
+
+		
+		*Spending in real prices of the simulated year 
+		replace depan=depan*1.025*1.022*1.087
+		
 		*Cleaning 
 		keep hhid depan_net_sub codpr
 			

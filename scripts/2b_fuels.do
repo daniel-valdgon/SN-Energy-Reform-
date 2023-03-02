@@ -49,7 +49,7 @@ Compute VAT collected
 	import excel "$path_raw/IO_Matrix.xlsx", sheet("IO_aij") firstrow clear
 		
 		*Define fixed sectors 
-		local thefixed 22 32 33 34
+		local thefixed 22 32 33 34 13 // education healt ad pub oil and electricity
 		
 		gen fixed=0
 		foreach var of local thefixed {

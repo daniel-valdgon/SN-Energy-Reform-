@@ -38,7 +38,8 @@ local pet_lamp		   410		// price per litre
 local butane   =	  (4285/9) // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg 
 
 *Survey quantities 
-/*gen q_fuel_super = depan*$share_spendind_super
+/*
+gen q_fuel_super = depan*$share_spendind_super
 gen q_gasoil 	 = depan*$share_spendind_gasoil
 gen q_ordinarie	 = depan*$share_spendind_ordinari
 */ 
