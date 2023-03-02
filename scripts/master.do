@@ -60,6 +60,14 @@ foreach f of local files {
 	qui: cap run "$p_scr/_ado/`f'"
 }
 
+include "$p_scr/pre_analysis/pre_master.do"
+
+
+
+
+
+
+
 /*
 *foreach adof in apoverty ftools gtools ereplace missings {
 *	cap ssc install `adof'
