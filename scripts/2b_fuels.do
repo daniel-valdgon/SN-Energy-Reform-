@@ -98,13 +98,10 @@ Compute VAT collected
 		* 215	Transport urbain/rural par traction animale
 		* 212	Transport urbain/rural en moto-taxi
 		* 407	Transport  interlocalité par eau (bateau, pirogue, pinasse)
-		*gen subsidy_fuel_indirect_no_transp=
-		
+		* gen subsidy_fuel_indirect_no_transp=
 		gen pind_shock_bus=0 if codpr==211
 		gen subsidy_fuel_indirect_bus=pind_shock_bus*depan_net_sub
-		
 		gen subsidy_fuel_indirect=pind_shock*depan_net_sub
-		
 		
 		gcollapse (sum) subsidy_fuel_indirect subsidy_fuel_indirect_bus , by(hhid) 
 		
@@ -119,8 +116,6 @@ Compute VAT collected
 	use `vat_sub_tmp_fuel', clear 
 	merge 1:1 hhid using `indirect_subsidy_fuel'
 	
-
-
 /*-------------------------------------------------------------------------------------
 	Subsidies Total
 -------------------------------------------------------------------------------------*/	
