@@ -32,11 +32,12 @@ merge m:1 hhid using "$path_raw/ehcvm_conso_SEN2018_menage.dta", keepusing (hhwe
 local super_carb	=   (0.75*695+0.25*775) //  Because 75 percent of the time of the survey was under 695. IN particular for 2018: 695, 2019: 695 April and May , 775 Jun and July 
 local ess_ord			665
 local ess_pir			497
-local fuel				659.082 // Composite price of fuel, calculated in the "Parameters" sheet for household gasoline
-
-local gasoil			655     //BEFORE IT SAID 665 BUT ITS 655
+local gasoil			(0.75*595+0.25*655)  // Additinoal change to consider that before June was 595. BEFORE IT SAID 665 BUT ITS 655
 local pet_lamp			410		// price per litre 
 local butane=			(4285/9) // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg 
+
+local fuel = 0.815*`gasoil' + 0.175*`ess_ord' + `super_carb'*0.01
+
 
 *Survey quantities 
 /*
