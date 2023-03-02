@@ -1,17 +1,17 @@
 
-*run "$p_scr/_ado/sp_groupfunction.ado"
-*run "$p_scr/_ado/groupfunction.ado"
-*run "$p_scr/_ado/costpush.ado"
+run "$p_scr/_ado/sp_groupfunction.ado"
+run "$p_scr/_ado/groupfunction.ado"
+run "$p_scr/_ado/costpush.ado"
 
 local income yd   // before I have a local here but it presented some problems 
-local ind_transf subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec subsidy_mp
+local ind_transf subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec 
 local ind_tax 	vat_elec vat_fuel
-local all_groups all_policies all_tax all_subs
+local all_groups all_policies all_tax all_subs all_elec all_fuel
 
 local policies `ind_transf' `ind_tax' `all_groups'
 local pline zref // line_19 line_32 line_55
-	
-	
+
+
 
 use `output', clear 
 
@@ -24,6 +24,8 @@ merge 1:1 hhid using `elec_tmp_dta', nogen
 *Adding electricity and fuel 
 egen all_subs=rowtotal(subsidy_fuel subsidy_elec )
 egen all_tax=rowtotal(vat_elec vat_fuel)
+gen all_elec=subsidy_elec-vat_elec
+gen all_fuel=subsidy_fuel-vat_fuel
 gen all_policies=all_subs-all_tax
 
 *Compute pc values 	
@@ -32,7 +34,7 @@ foreach var of local policies {
 	replace `var'=0 if `var'==.
 }
 
-*Define macros (gloablas) of pc variables (for vars and list of vars ex: policies_pc)
+*Define macros (globals) of pc variables (for vars and list of vars ex: policies_pc)
 foreach x in income policies  {
 	local `x'_pc
 	foreach y of local `x' {
@@ -67,7 +69,7 @@ save "$p_o/${namexls}.dta", replace
 		}
 		
 		
-	foreach var in all_policies all_tax all_subs {
+	foreach var in all_policies all_tax all_subs all_elec all_fuel {
 		
 		if "`var'"=="all_tax" {
 			gen inc_`var'=yd_pc-`var'_pc 		 // effect of all policies defined as subs-tax 
@@ -105,11 +107,15 @@ use `dta_pc', clear
 		gen c_share_`x'_pc= `x'_pc/yd_pc  if `x'_pc>0 //conditional incidence
 	}
 	
+	*Correction: all_tax should be negative
+	replace share_all_tax_pc = -share_all_tax_pc
+	replace c_share_all_tax_pc = -c_share_all_tax_pc 
+	
 	keep yd_deciles_pc share* c_share* pondih	
 	tempfile net_cash_tmp
 	save `net_cash_tmp'
 
-*Unconditional net chash 
+*Unconditional net cash 
 	groupfunction [aw=pondih], mean (share* ) by(yd_deciles_pc) norestore
 
 	reshape long share_, i(yd_deciles_pc) j(variable) string
@@ -119,7 +125,7 @@ use `dta_pc', clear
 	tempfile netcash_yd
 	save `netcash_yd'
 
-*Conditional net chash 
+*Conditional net cash 
 	use `net_cash_tmp', clear 
 	
 	groupfunction [aw=pondih], mean (c_share_* ) by(yd_deciles_pc) norestore
@@ -155,6 +161,26 @@ use `dta_pc', clear
 tempfile theyd_deciles
 save `theyd_deciles', replace 
 	
+* generate absolute incidence indicators per decile
+	use `theyd_deciles'
+	append using `theall'
+	keep if measure=="benefits"
+	
+	reshape wide value, i(measure _population yd_deciles_pc all) j(variable) string
+	sort yd_deciles_pc
+	foreach policy of local policies_pc{
+		local totalpol = value`policy'[1]
+		replace value`policy' = value`policy'/`totalpol'
+	}
+	reshape long
+	replace measure = "ai"
+	drop if all==1
+	sort yd_deciles_pc
+	
+tempfile theai_deciles
+save `theai_deciles', replace 
+
+
 *===============================================================================
 		*4 Compiling 
 *===============================================================================
@@ -163,21 +189,23 @@ save `theyd_deciles', replace
 	use `theyd_deciles'
 	append using `netcash_yd'
 	append using `cond_netcash_yd'
+	append using `theai_deciles'
 	
 	*second no deciles 
 	append using `theall'
 	append using `poverty'
-		
-	gen concat = variable +"_"+ measure +"_"+"_yd_"+string(yd_deciles_pc)
+	
+	gen scenario = `scenario'
+	gen concat = string(scenario)+"_"+variable +"_"+ measure +"_"+"_yd_"+string(yd_deciles_pc)
 	order concat, first
 	
-	
-	export excel "$p_res/${namexls}.xlsx", sheet(stats)  first(variable) sheetreplace 
+	tempfile theyd_deciles_`scenario'
+	save `theyd_deciles_`scenario'', replace 
 	
 
 *===============================================================================
 		*5 Stats for slide
 *===============================================================================
 
-
+/*
 use "$p_o/$namexls.dta", clear 

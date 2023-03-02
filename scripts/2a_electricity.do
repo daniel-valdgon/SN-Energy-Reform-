@@ -32,7 +32,7 @@ Define tranches
 			/*DPP*/ replace tranche1_tool=${tranche1_`type_pay'} if consumption_electricite>=${tranche1_`type_pay'} & type_client==1 & prepaid==`payment'  // $MaxT1_DPP
 			replace tranche1_tool=consumption_electricite if consumption_electricite<${tranche1_`type_pay'}  & type_client==1 & prepaid==`payment'
 			
-			/*DMP*/replace tranche1_tool=${dmp_`type_pay'_tra_t1} if consumption_electricite>=${dmp_`type_pay'_tra_t1} & type_client==2 & prepaid==`payment'
+			/*DMP*/ replace tranche1_tool=${dmp_`type_pay'_tra_t1} if consumption_electricite>=${dmp_`type_pay'_tra_t1} & type_client==2 & prepaid==`payment'
 			replace tranche1_tool=consumption_electricite if consumption_electricite<${dmp_`type_pay'_tra_t1} & type_client==2 & prepaid==`payment'
 			
 			replace tranche1_tool=0 if tranche1_tool==. & prepaid==`payment' // this should not happend 
@@ -142,8 +142,6 @@ Compute VAT collected
 	egen subsidy_elec_direct=rowtotal(subsidy1 subsidy2 subsidy3 subsidygdp)
 	replace subsidy_elec_direct=subsidy_elec_direct*6 // electricity consumption recorded in tranches is bimonthly 
 	
-	gen subsidy_mp=${cost}*consumption_electricite*6
-	
 	tempfile vat_sub_tmp
 	save `vat_sub_tmp'
 
@@ -157,7 +155,7 @@ Compute VAT collected
 	import excel "$path_raw/IO_Matrix.xlsx", sheet("IO_aij") firstrow clear
 		
 		*Define fixed sectors 
-		local thefixed 22 32 33 34 13 // education healt ad pub oil and electricity
+		local thefixed 22 32 33 34 13 //OJO QUE NO ESTABA EL SECTOR 13 FUELS
 		
 		gen fixed=0
 		foreach var of local thefixed {
@@ -169,9 +167,7 @@ Compute VAT collected
 		replace shock=0  if shock==.
 	
 		*Indirect effects 
-		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) fix
-		
-		
+		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) 
 		
 	tempfile io_ind_sim
 	save `io_ind_sim', replace
@@ -219,7 +215,7 @@ Compute VAT collected
 -------------------------------------------------------------------------------------*/	
 	egen subsidy_elec=rowtotal(subsidy_elec_direct subsidy_elec_indirect) // indirect effect is over depan that is already annualized 
 	
-	keep hhid subsidy_elec_direct subsidy_elec_indirect subsidy_elec vat_elec subsidy_mp
+	keep hhid subsidy_elec_direct subsidy_elec_indirect subsidy_elec vat_elec
 
 	tempfile elec_tmp_dta
 	save `elec_tmp_dta', replace 

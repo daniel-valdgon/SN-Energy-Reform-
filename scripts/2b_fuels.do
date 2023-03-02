@@ -49,7 +49,7 @@ Compute VAT collected
 	import excel "$path_raw/IO_Matrix.xlsx", sheet("IO_aij") firstrow clear
 		
 		*Define fixed sectors 
-		local thefixed 22 32 33 34 13 // education healt ad pub oil and electricity
+		local thefixed 22 32 33 34 13 //OJO QUE NO ESTABA EL SECTOR 13 FUELS
 		
 		gen fixed=0
 		foreach var of local thefixed {
@@ -59,12 +59,11 @@ Compute VAT collected
 		*Shock
 		gen shock=. 
 		*previous: gen shock=((${mp_butane}-${sp_butane})/${mp_butane})*0.17 if inlist(Secteur, 13) // butane is 17 percent of water, gas and electricity sector 
-		replace  shock=((${mp_gasoil}-${sp_gasoil})/${mp_gasoil})*0.93+ ((${mp_pirogue}-${sp_pirogue})/${mp_pirogue})*0.07  if inlist(Secteur, 13)
+		replace  shock=((${mp_industryfuel}-${sp_industryfuel})/${mp_industryfuel}) if inlist(Secteur, 13)
 		replace shock=0  if shock==. // we assume that oil sector of the IO is mostly represented by fuel and that the consumption of super-carburant is mostly concentrated on the household sector 
 	
 		*Indirect effects 
-		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) fix
-		
+		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) 
 		
 	tempfile io_fuel
 	save `io_fuel', replace
@@ -92,22 +91,10 @@ Compute VAT collected
 	
 		merge m:1 codpr using `Xwalk_IO_est_fuel' , assert(matched using) keep(matched) nogen  
 		
-		* 211	Transport urbain en bus
-		* %213	Transport urbain en train
-		* %214	Transport urbain/rural par voie fluviale
-		* 215	Transport urbain/rural par traction animale
-		* 212	Transport urbain/rural en moto-taxi
-		* 407	Transport  interlocalité par eau (bateau, pirogue, pinasse)
-		* gen subsidy_fuel_indirect_no_transp=
-		gen pind_shock_bus=0 if codpr==211
-		gen subsidy_fuel_indirect_bus=pind_shock_bus*depan_net_sub
 		gen subsidy_fuel_indirect=pind_shock*depan_net_sub
 		
-		gcollapse (sum) subsidy_fuel_indirect subsidy_fuel_indirect_bus , by(hhid) 
-		
-		gen gain_bus=subsidy_fuel_indirect-subsidy_fuel_indirect_bus
-		keep subsidy_fuel_indirect hhid  gain_bus
-		
+		gcollapse (sum) subsidy_fuel_indirect , by(hhid) 
+	
 	tempfile indirect_subsidy_fuel
 	save `indirect_subsidy_fuel', replace
 		
@@ -116,6 +103,8 @@ Compute VAT collected
 	use `vat_sub_tmp_fuel', clear 
 	merge 1:1 hhid using `indirect_subsidy_fuel'
 	
+
+
 /*-------------------------------------------------------------------------------------
 	Subsidies Total
 -------------------------------------------------------------------------------------*/	
