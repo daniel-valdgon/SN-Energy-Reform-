@@ -77,7 +77,7 @@ drop hhweight
 	merge 1:1  hhid using `output', keepusing(hhweight hhweight_orig) nogen // weight updated 
 	
 	
-	replace consumption_electricite=consumption_electricite*(4662/3668)/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
+	replace consumption_electricite=consumption_electricite*(${elec_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
 	
 	clonevar consumption_electricite_after =consumption_electricite 
 	clonevar hhweight_after= hhweight 
@@ -148,6 +148,11 @@ append using `raw_data_stats_after'
 
 use "$path_ceq/2_pre_sim/08_subsidies_fuel.dta", clear   
 	keep hhid q_fuel q_pet_lamp q_butane
+	
+	replace q_fuel=q_fuel*(${fuel_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
+	replace q_pet_lamp=q_pet_lamp*(${pet_lamp_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
+	replace q_butane=q_butane*(${butane_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
+	
 	tempfile fuel_tmp_dta
 save `fuel_tmp_dta', replace 
 
@@ -172,15 +177,15 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		replace fixed=1  if inlist( Secteur, 22, 32, 33, 34, 13)
 		
 		*Shock of fuel subsidies 
-		local gasoil_sub_svy= (-1)*((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // This prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference
-		dis `gasoil_sub_svy'
+		local indfuel_sub_svy= $industryfuel_sub_svy
+		dis ((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // These prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference
 		
-		*local subsidy_firms_base = -(124.4-113.11)/124.4  // tariffs from Petra xls for 2020, weighted using IMF weights 
+		*local subsidy_firms_base = (125.9-115.2)/125.9  // tariffs from Petra xls for 2020, weighted using IMF weights 
 		*local share_elec_io_base "0.664" // Share of electricity in the IO sector 
-		local subsidy_firms_base = -(124.4-113.11)/124.4  // tariffs from Petra xls for 2020, weighted using IMF weights 
+		local subsidy_firms_base = (${cost_firms_svy}-${tar_firms_svy})/${cost_firms_svy}  // tariffs from Petra xls for 2020, weighted using IMF weights 
 		local share_elec_io_base $share_elec_io_base // Share of electricity in the IO sector 
 		
-		gen 	shock=`gasoil_sub_svy' if inlist(Secteur, 13) // fuel sector 
+		gen 	shock=`indfuel_sub_svy' if inlist(Secteur, 13) // fuel sector 
 		replace shock=`subsidy_firms_base'*`share_elec_io_base' if Secteur==22
 		
 		replace shock=0  if shock==.
@@ -200,7 +205,7 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 	
 		merge m:1 Secteur  using  `io_fuel_sv_yr',  nogen keep(matched) 		//Adding indirect subsidies 1	agriculture vivriere  8	fabrication de produits a base 15	fabrication de produits en cao, 18	fabrication de machines , 23	construction is not part of the consumption aggregate hence of the prod sector Xwalk 
 		
-		replace  pind_shock=pind_shock*pourcentage // to compute teh weighted average by product as weighted average by sectors  
+		replace  pind_shock=pind_shock*pourcentage // to compute the weighted average by product as weighted average by sectors  
 			
 		collapse (sum) pind_shock, by(codpr)
 	
@@ -215,7 +220,7 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		*Spending in real prices of the simulated year 
 		replace depan=depan*(1+${inf_20}/100)*(1+${inf_21}/100)*(1+${inf_22}/100)
 		*Substracting indirect effects 
-		gen depan_net_sub=depan/(1-pind_shock)
+		gen depan_net_sub=depan/(1-pind_shock) //pind_shock debe ser positivo para que le reste correctamente al 1
 		*Cleaning 
 		keep hhid depan_net_sub codpr
 			

@@ -30,13 +30,12 @@ merge m:1 hhid using "$path_raw/ehcvm_conso_SEN2018_menage.dta", keepusing (hhwe
 
 *
 local super_carb	=   (0.75*695+0.25*775) //  Because 75 percent of the time of the survey was under 695. IN particular for 2018: 695, 2019: 695 April and May , 775 Jun and July 
-local ess_ord			665
-local ess_pir			497
-local fuel				659.082 // Composite price of fuel, calculated in the "Parameters" sheet for household gasoline
+local ess_ord		   665
+local ess_pir		   497
 
-local gasoil			655     //BEFORE IT SAID 665 BUT ITS 655
-local pet_lamp			410		// price per litre 
-local butane=			(4285/9) // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg 
+local gasoil           665
+local pet_lamp		   410		// price per litre 
+local butane   =	  (4285/9) // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg 
 
 *Survey quantities 
 /*
@@ -45,7 +44,7 @@ gen q_gasoil 	 = depan*$share_spendind_gasoil
 gen q_ordinarie	 = depan*$share_spendind_ordinari
 */ 
 
-gen q_fuel=depan/`fuel'  if inlist(codpr, 208, 209, 304) // 208	Carburant pour véhicule 209	Carburant pour motocyclette 304	Carburant pour groupe electrogène à usage domestique
+gen q_fuel=depan/($S1*`super_carb'+$S2*`ess_ord'+$S3*`ess_ord')  if inlist(codpr, 208, 209, 304) // 208	Carburant pour véhicule 209	Carburant pour motocyclette 304	Carburant pour groupe electrogène à usage domestique
 
 gen q_pet_lamp=depan/`pet_lamp'  if inlist(codpr, 202)     // 202	Pétrole lampant =Kerosene
 gen q_butane =depan/`butane'   if inlist(codpr, 303) // 303	Gaz domestique
