@@ -60,9 +60,11 @@ foreach f of local files {
 	qui: cap run "$p_scr/_ado/`f'"
 }
 
-foreach adof in apoverty ftools gtools ereplace missings {
-	cap ssc install `adof'
+/*
+*foreach adof in apoverty ftools gtools ereplace missings {
+*	cap ssc install `adof'
 }
+*/
 
 global namexls	"simul_results"
 global numscenarios 1 2 3 4
@@ -80,33 +82,29 @@ foreach scenario in $numscenarios {
 
 /*===============================================================================================
 	Preparing data:
- ==============================================================================================*/
+==============================================================================================*/
  
 *Rename parameters to the correspondent scenario
- 
 include "$p_scr/1a_rename_pmts.do"
 
 
 *Uprating
-
 include "$p_scr/1b_updating_survey.do"
+
+dsadsa
 
 /*===============================================================================================
 	Simulation 
  ==============================================================================================*/
-
 *Electricity 
-
 include "$p_scr/2a_electricity.do"
 
 
 *Fuels 
-
 include "$p_scr/2b_fuels.do" 
 
 
 * Load CEQ data and compute parameters and and export into results 
-
 include "$p_scr/3a_outputs.do" //Note: this produces a temfile per scenario
 
 }

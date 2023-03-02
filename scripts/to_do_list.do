@@ -12,5 +12,5 @@
 
 
 *Electricity 
-*a. Compute the subsidy for firms using the neww decree of 2022-54. Compute shares for each type of profesional (IMF)
-*b.	Petra does not give tranches therefore we need to use tranches 
+// *a. Compute the subsidy for firms using the neww decree of 2022-54. Compute shares for each type of profesional (IMF)
+// *b.	Petra does not give tranches therefore we need to use tranches 
