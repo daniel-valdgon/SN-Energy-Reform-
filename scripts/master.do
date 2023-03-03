@@ -24,7 +24,9 @@ set more off, perm
 
 // Note that scripts folder and project folder can be separated from each other. This gives flexibility for collaborators not needing to share datasets but only code
 if "`c(username)'"=="WB419055" {
+	
 	global proj	"C:/Users/WB419055/OneDrive - WBG/SenSim Tool/JTR/Energy_reform" // project folder
+	
 	
 	*Prepare data on consumption 
 	global path_raw "$proj/data/raw"
@@ -32,21 +34,24 @@ if "`c(username)'"=="WB419055" {
 	global path_ceq  "C:/Users/WB419055/OneDrive - WBG/SenSim Tool/Senegal_tool/Senegal_tool/01. Data"
 	
 } 
+
 if "`c(username)'"=="andre" {
+	
 	global proj	"C:\Users\andre\Dropbox\Energy_Reform" // project folder
+	
 	
 	*Prepare data on consumption 
 	global path_raw "$proj/data/raw"
 	global path_ceq "$proj/data/raw"
 	*global path_ceq  "C:/Users/WB419055/OneDrive - WBG/SenSim Tool/Senegal_tool/Senegal_tool/01. Data"
 	
-}
+} 
 
 
 global p_res	"$proj/results"
 global p_o 		"$proj/data/output"
 global p_pre 	"$proj/pre_analysis"
-global p_scr 	"$proj/scripts"
+global p_scr 	"$proj/scripts/merged_excel"
 
 local debug "single_policy"
 
@@ -69,11 +74,10 @@ include "$p_scr/pre_analysis/pre_master.do"
 
 
 /*
-*foreach adof in apoverty ftools gtools ereplace missings {
-*	cap ssc install `adof'
+foreach adof in apoverty ftools gtools ereplace {
+	cap ssc install `adof'
 }
 */
-
 global namexls	"simul_results"
 global numscenarios 1 2 3 4
 
@@ -90,26 +94,33 @@ foreach scenario in $numscenarios {
 
 /*===============================================================================================
 	Preparing data:
-==============================================================================================*/
+ ==============================================================================================*/
  
 *Rename parameters to the correspondent scenario
+ 
 include "$p_scr/1a_rename_pmts.do"
 
+
 *Uprating
+
 include "$p_scr/1b_updating_survey.do"
 
 /*===============================================================================================
 	Simulation 
  ==============================================================================================*/
+
 *Electricity 
+
 include "$p_scr/2a_electricity.do"
 
 
 *Fuels 
+
 include "$p_scr/2b_fuels.do" 
 
 
 * Load CEQ data and compute parameters and and export into results 
+
 include "$p_scr/3a_outputs.do" //Note: this produces a temfile per scenario
 
 }
@@ -122,6 +133,21 @@ foreach scenario in $numscenarios{
 }
 
 export excel "$p_res/${namexls}.xlsx", sheet(stats) first(variable) sheetreplace 
+
+clear
+foreach scenario in $numscenarios{
+	append using `calib_`scenario''
+}
+
+export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetreplace 
+
+
+
+
+
+
+
+
 exit 
 
 

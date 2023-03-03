@@ -42,7 +42,7 @@ dis (0.75*595+0.25*655) " = `gasoil'"
 local pet_lamp			$sp19_pet_lamp	// price per litre 
 dis 410 " = `pet_lamp'"
 local butane			$sp19_butane // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg
-dis (4285/9) " = `butane'" //Why are they different? 476 seems like the 2022 price
+dis (4285/9) " = `butane'"
 local fuel				$sp19_fuel
 
 *Survey quantities 
