@@ -177,13 +177,11 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		replace fixed=1  if inlist( Secteur, 22, 32, 33, 34, 13)
 		
 		*Shock of fuel subsidies 
-		local indfuel_sub_svy= $industryfuel_sub_svy
-		dis ((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // These prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference
+		local indfuel_sub_svy= $industryfuel_sub_svy // before 	dis ((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07
 		
-		*local subsidy_firms_base = (125.9-115.2)/125.9  // tariffs from Petra xls for 2020, weighted using IMF weights 
 		*local share_elec_io_base "0.664" // Share of electricity in the IO sector 
-		local subsidy_firms_base = (${cost_firms_svy}-${tar_firms_svy})/${cost_firms_svy}  // tariffs from Petra xls for 2020, weighted using IMF weights 
-		local share_elec_io_base $share_elec_io_base // Share of electricity in the IO sector 
+		local subsidy_firms_base = (${cost_firms_svy}-${tar_firms_svy})/${cost_firms_svy}  // use WB energy data for 2021 (similar to IMF 2021) (125.9-115.2)/125.9 
+		local share_elec_io_base $share_elec_io_base // Share of electricity in the IO sector using survey 
 		
 		gen 	shock=`indfuel_sub_svy' if inlist(Secteur, 13) // fuel sector 
 		replace shock=`subsidy_firms_base'*`share_elec_io_base' if Secteur==22
