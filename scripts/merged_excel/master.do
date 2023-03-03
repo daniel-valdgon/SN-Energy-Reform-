@@ -124,6 +124,21 @@ foreach scenario in $numscenarios{
 }
 
 export excel "$p_res/${namexls}.xlsx", sheet(stats) first(variable) sheetreplace 
+
+clear
+foreach scenario in $numscenarios{
+	append using `calib_`scenario''
+}
+
+export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetreplace 
+
+
+
+
+
+
+
+
 exit 
 
 
