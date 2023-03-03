@@ -20,7 +20,6 @@
 
 */ 
 
-
 /**********************************************************************************
 *            			1. Fuel subsidies 
 **********************************************************************************/
@@ -34,7 +33,7 @@ local ess_ord			665
 local ess_pir			497
 local gasoil			(0.75*595+0.25*655)  // Additinoal change to consider that before June was 595. BEFORE IT SAID 665 BUT ITS 655
 local pet_lamp			410		// price per litre 
-local butane=			(4285/9) // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg 
+local butane=			(4285/9) // price per Kg. Using price per Kg of the 9Kg bottle is similar to the price of the 2.7, 6 and 9 kg 
 
 local fuel = 0.815*`gasoil' + 0.175*`ess_ord' + `super_carb'*0.01
 
@@ -54,7 +53,6 @@ gen q_butane =depan/`butane'   if inlist(codpr, 303) // 303	Gaz domestique
 
 collapse (sum) q_fuel q_pet_lamp q_butane , by(hhid) 
 save "$presim/08_subsidies_fuel.dta", replace
-
 
 
 exit 

@@ -95,11 +95,8 @@ foreach scenario in $numscenarios {
 *Rename parameters to the correspondent scenario
 include "$p_scr/1a_rename_pmts.do"
 
-
 *Uprating
 include "$p_scr/1b_updating_survey.do"
-
-dsadsa
 
 /*===============================================================================================
 	Simulation 
