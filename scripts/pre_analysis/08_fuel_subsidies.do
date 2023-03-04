@@ -20,6 +20,7 @@
 
 */ 
 
+
 /**********************************************************************************
 *            			1. Fuel subsidies 
 **********************************************************************************/
@@ -28,15 +29,21 @@ use "$presim/05_purchases_hhid_codpr.dta", clear
 merge m:1 hhid using "$path_raw/ehcvm_conso_SEN2018_menage.dta", keepusing (hhweight hhsize)
 
 *
-local super_carb	=   (0.75*695+0.25*775) //  Because 75 percent of the time of the survey was under 695. IN particular for 2018: 695, 2019: 695 April and May , 775 Jun and July 
-local ess_ord			665
-local ess_pir			497
-local gasoil			(0.75*595+0.25*655)  // Additinoal change to consider that before June was 595. BEFORE IT SAID 665 BUT ITS 655
-local pet_lamp			410		// price per litre 
-local butane=			(4285/9) // price per Kg. Using price per Kg of the 9Kg bottle is similar to the price of the 2.7, 6 and 9 kg 
+local super_carb		$sp19_super   //  Because 75 percent of the time of the survey was under 695. IN particular for 2018: 695, 2019: 695 April and May , 775 Jun and July 
+dis (0.75*695+0.25*775) " = `super_carb'"
 
-local fuel = 0.815*`gasoil' + 0.175*`ess_ord' + `super_carb'*0.01
+local ess_ord			$sp19_ordinaire
+dis 665 " = `ess_ord'"
+local ess_pir			$sp19_pirogue
+dis 497 " = `ess_pir'"
 
+local gasoil			$sp19_gasoil
+dis (0.75*595+0.25*655) " = `gasoil'"
+local pet_lamp			$sp19_pet_lamp	// price per litre 
+dis 410 " = `pet_lamp'"
+local butane			$sp19_butane // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg
+dis (4285/9) " = `butane'"
+local fuel				$sp19_fuel
 
 *Survey quantities 
 /*
@@ -45,7 +52,7 @@ gen q_gasoil 	 = depan*$share_spendind_gasoil
 gen q_ordinarie	 = depan*$share_spendind_ordinari
 */ 
 
-gen q_fuel=depan/`fuel'  if inlist(codpr, 208, 209, 304) // 208	Carburant pour véhicule 209	Carburant pour motocyclette 304	Carburant pour groupe electrogène à usage domestique
+gen q_fuel=depan/`fuel' if inlist(codpr, 208, 209, 304) // 208	Carburant pour véhicule 209	Carburant pour motocyclette 304	Carburant pour groupe electrogène à usage domestique
 
 gen q_pet_lamp=depan/`pet_lamp'  if inlist(codpr, 202)     // 202	Pétrole lampant =Kerosene
 gen q_butane =depan/`butane'   if inlist(codpr, 303) // 303	Gaz domestique
@@ -53,6 +60,7 @@ gen q_butane =depan/`butane'   if inlist(codpr, 303) // 303	Gaz domestique
 
 collapse (sum) q_fuel q_pet_lamp q_butane , by(hhid) 
 save "$presim/08_subsidies_fuel.dta", replace
+
 
 
 exit 

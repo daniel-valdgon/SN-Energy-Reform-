@@ -27,13 +27,13 @@ keep  hhid yd_deciles_pc yd_pc  hhsize pondih all zref hhweight
 *Updating population
 clonevar  hhweight_orig=hhweight
 foreach v in pondih hhweight {
-	replace `v'=`v'*(1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100) // population growth 2019-2022
+	replace `v'=`v'*(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) // population growth 2019-2022
 }
 
 
 *Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
 foreach v in yd_pc zref {
-	replace `v'=`v'*(1+${inf_20}/100)*(1+${inf_21}/100)*(1+${inf_22}/100) // population growth 2019-2022
+	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 }
 
 
@@ -77,7 +77,7 @@ drop hhweight
 	merge 1:1  hhid using `output', keepusing(hhweight hhweight_orig) nogen // weight updated 
 	
 	
-	replace consumption_electricite=consumption_electricite*(${elec_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
+	replace consumption_electricite=consumption_electricite*(${elec_uprating})/(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) //discounting population growth to do the uprating  
 	
 	clonevar consumption_electricite_after =consumption_electricite 
 	clonevar hhweight_after= hhweight 
@@ -140,6 +140,8 @@ foreach data in _before _after {
 
 use `raw_data_stats_before'
 append using `raw_data_stats_after'
+tempfile calib_`scenario'
+save `calib_`scenario'', replace
 
 
 /*===============================================================================================
@@ -149,9 +151,9 @@ append using `raw_data_stats_after'
 use "$path_ceq/2_pre_sim/08_subsidies_fuel.dta", clear   
 	keep hhid q_fuel q_pet_lamp q_butane
 	
-	replace q_fuel=q_fuel*(${fuel_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
-	replace q_pet_lamp=q_pet_lamp*(${pet_lamp_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
-	replace q_butane=q_butane*(${butane_uprating})/((1+${popgrowth_20}/100)*(1+${popgrowth_21}/100)*(1+${popgrowth_22}/100)) //discounting population growth to do the uprating  
+	replace q_fuel=q_fuel*(${fuel_uprating})/(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) //discounting population growth to do the uprating  
+	replace q_pet_lamp=q_pet_lamp*(${pet_lamp_uprating})/(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) //discounting population growth to do the uprating  
+	replace q_butane=q_butane*(${butane_uprating})/(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) //discounting population growth to do the uprating  
 	
 	tempfile fuel_tmp_dta
 save `fuel_tmp_dta', replace 
@@ -178,7 +180,7 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		
 		*Shock of fuel subsidies 
 		local indfuel_sub_svy= $industryfuel_sub_svy
-		dis ((675 - 655)/675)*0.93 + ((553 - 497)/553)*0.07 // These prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference
+		dis `indfuel_sub_svy'
 		
 		*local subsidy_firms_base = (125.9-115.2)/125.9  // tariffs from Petra xls for 2020, weighted using IMF weights 
 		*local share_elec_io_base "0.664" // Share of electricity in the IO sector 

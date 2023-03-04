@@ -17,7 +17,8 @@ use `list_dta', clear
 	margin_detaillant popgrowth_20 popgrowth_21 popgrowth_22 inf_20 inf_21 inf_22 elec_uprating gdp_22 ///
 	iwf_butane iwf_pet_lamp iwf_gasoil iwf_ordinaire iwf_pirogue iwf_super ///
 	hwf_gasoil hwf_ordinaire hwf_pirogue hwf_super ///
-	mp19_butane mp19_pet_lamp mp19_gasoil mp19_pirogue mp19_fuel ///
+	mp19_butane mp19_pet_lamp mp19_gasoil mp19_ordinaire mp19_pirogue mp19_super ///
+	sp19_butane sp19_pet_lamp sp19_gasoil sp19_ordinaire sp19_pirogue sp19_super sp19_fuel sp19_industryfuel ///
 	butane_uprating pet_lamp_uprating gasoil_uprating ordinaire_uprating pirogue_uprating super_uprating fuel_uprating industryfuel_uprating ///
 	butane_sub_svy pet_lamp_sub_svy gasoil_sub_svy ordinaire_sub_svy pirogue_sub_svy super_sub_svy fuel_sub_svy industryfuel_sub_svy cost_firms_svy tar_firms_svy share_elec_io_base {
 		global `v' = ${`v'_s`scenario'}

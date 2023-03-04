@@ -65,6 +65,9 @@ cap ssc install `adof'
 
 }
 
+include "$p_scr/0_pull_pmts.do" // This code imports all the parameters from Excel, but we only need a couple of them
+local scenario 1
+include "$p_scr/1a_rename_pmts.do" // This code removes the number of the scenario from the name of each parameter
 
 *08 Indirect taxes
 include "$p_scr/pre_analysis/08_subsidies_elect.do"
