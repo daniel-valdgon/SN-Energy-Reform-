@@ -180,11 +180,8 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		
 		*Shock of fuel subsidies 
 		local indfuel_sub_svy= $industryfuel_sub_svy
-		dis `indfuel_sub_svy'
 		
-		*local subsidy_firms_base = (125.9-115.2)/125.9  // tariffs from Petra xls for 2020, weighted using IMF weights 
-		*local share_elec_io_base "0.664" // Share of electricity in the IO sector 
-		local subsidy_firms_base = (${cost_firms_svy}-${tar_firms_svy})/${cost_firms_svy}  // tariffs from Petra xls for 2020, weighted using IMF weights 
+		local subsidy_firms_base = (${cost_firms_svy}-${tar_firms_svy})/${cost_firms_svy}  // use WB energy data for 2021 (similar to IMF 2021) (125.9-115.2)/125.9
 		local share_elec_io_base $share_elec_io_base // Share of electricity in the IO sector 
 		
 		gen 	shock=`indfuel_sub_svy' if inlist(Secteur, 13) // fuel sector 

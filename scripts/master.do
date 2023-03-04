@@ -30,9 +30,7 @@ if "`c(username)'"=="WB419055" {
 	
 	*Prepare data on consumption 
 	global path_raw "$proj/data/raw"
-	*global path_ceq "$proj/data/raw"
-	global path_ceq  "C:/Users/WB419055/OneDrive - WBG/SenSim Tool/Senegal_tool/Senegal_tool/01. Data"
-	
+	global path_ceq "$proj/data/raw"
 } 
 
 if "`c(username)'"=="andre" {
@@ -43,17 +41,15 @@ if "`c(username)'"=="andre" {
 	*Prepare data on consumption 
 	global path_raw "$proj/data/raw"
 	global path_ceq "$proj/data/raw"
-	*global path_ceq  "C:/Users/WB419055/OneDrive - WBG/SenSim Tool/Senegal_tool/Senegal_tool/01. Data"
-	
 } 
 
 
 global p_res	"$proj/results"
 global p_o 		"$proj/data/output"
 global p_pre 	"$proj/pre_analysis"
-global p_scr 	"$proj/scripts/merged_excel"
+global p_scr 	"$proj/scripts"
+global presim	"$proj/data/raw/2_pre_sim"
 
-local debug "single_policy"
 
 *===============================================================================
 // Run necessary ado files
@@ -65,12 +61,6 @@ foreach f of local files {
 	qui: cap run "$p_scr/_ado/`f'"
 }
 
-include "$p_scr/pre_analysis/pre_master.do"
-
-
-
-
-
 
 
 /*
@@ -78,18 +68,24 @@ foreach adof in apoverty ftools gtools ereplace {
 	cap ssc install `adof'
 }
 */
-global namexls	"simul_results"
+
+global namexls	"simul_results_main"
 global numscenarios 1 2 3 4
 
+
 /*===============================================================================================
-	Pulling parameters 
+	Pre-simulation
  ==============================================================================================*/
 
-include "$p_scr/0_pull_pmts.do" // The main difference of this code is that it takes all decimal points of parameters
+include "$p_scr/pre_analysis/pre_master.do" // numscenarios needs to be run first because this do-file call paramters 
 
+/*===============================================================================================
+	Load pmts 
+ ==============================================================================================*/
 
-*Running multiple scenarios 
+include "$p_scr/0_pull_pmts.do" // we need to load parameters again because pre_simulation reset them 
 
+*Running multiple scenarios
 foreach scenario in $numscenarios {
 
 /*===============================================================================================
@@ -134,11 +130,14 @@ foreach scenario in $numscenarios{
 
 export excel "$p_res/${namexls}.xlsx", sheet(stats) first(variable) sheetreplace 
 
+/*===============================================================================================
+	Calibration stats 
+ ==============================================================================================*/
+
 clear
 foreach scenario in $numscenarios{
 	append using `calib_`scenario''
 }
-
 export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetreplace 
 
 

@@ -20,7 +20,7 @@ order scenario
 
 
 
-foreach scenario in $numscenarios{
+foreach scenario in $numscenarios {
     
 	*ALL THE PARAMETERS 
 	foreach v in vatexempt_tra tariffs_pre_t1 tariffs_pre_t2 tariffs_pre_t3 ///
@@ -42,7 +42,7 @@ foreach scenario in $numscenarios{
 		global `v'_s`scenario' = `value'
 	}
 	
-	//Note: global DGP_tar 114.58 // 2020 data: mean 115.54, sd 6.68 (excluding april because it was a complete outlier) paid by kwh in 2020 // 2022 data: mean 114.58, sd 2.27. Now included in the parameters 
+	
 	 
 }
 

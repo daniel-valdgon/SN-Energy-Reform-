@@ -29,20 +29,15 @@ use "$presim/05_purchases_hhid_codpr.dta", clear
 merge m:1 hhid using "$path_raw/ehcvm_conso_SEN2018_menage.dta", keepusing (hhweight hhsize)
 
 *
-local super_carb		$sp19_super   //  Because 75 percent of the time of the survey was under 695. IN particular for 2018: 695, 2019: 695 April and May , 775 Jun and July 
-dis (0.75*695+0.25*775) " = `super_carb'"
+local super_carb		$sp19_super   //  Because 75 percent of the time of the survey was under 695. IN particular for 2018: 695, 2019: 695 April and May , 775 Jun and July  dis (0.75*695+0.25*775) " = `super_carb'"
 
-local ess_ord			$sp19_ordinaire
-dis 665 " = `ess_ord'"
-local ess_pir			$sp19_pirogue
-dis 497 " = `ess_pir'"
+local ess_ord			$sp19_ordinaire // dis 665 " = `ess_ord'"
+local ess_pir			$sp19_pirogue // dis 497 " = `ess_pir'"
 
-local gasoil			$sp19_gasoil
-dis (0.75*595+0.25*655) " = `gasoil'"
+local gasoil			$sp19_gasoil // dis (0.75*595+0.25*655) " = `gasoil'"
 local pet_lamp			$sp19_pet_lamp	// price per litre 
 dis 410 " = `pet_lamp'"
-local butane			$sp19_butane // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg
-dis (4285/9) " = `butane'"
+local butane			$sp19_butane // price of gas for 9kg = very close to weighted price of 2.7, 6 and 9 kg dis (4285/9) " = `butane'"
 local fuel				$sp19_fuel
 
 *Survey quantities 
