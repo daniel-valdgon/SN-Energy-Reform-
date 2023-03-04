@@ -269,7 +269,7 @@ egen aux_stot_pre2=total(hhweight) if prix_electricite!=. & prix_electricite!=0
 gen cum_pre2=aux_pre2/aux_stot_pre2
 
 
-replace temp_prepaid_woyofal=-1 if cum_pre2<0.5955 // distribution of pre-paid in 2021 from here https://www.senelec.sn/chiffres-cls , could be updated to 2022 or restrcited to hosuehold but the important gains are from here because we jump from 25 to 60 percent 
+replace temp_prepaid_woyofal=-1 if cum_pre2<0.5955 // distribution of pre-paid in 2021 from here https://www.senelec.sn/chiffres-cls, could be updated to 2022 or restrcited to hosuehold but the important gains are from here because we jump from 25 to 60 percent. Other 2021 data shows 55.1, mostly because it does not entirely correspond to 2021
 recode temp_prepaid_woyofal (-1=1) , gen(prepaid_woyofal2)
 
 clonevar prepaid_or=prepaid_woyofal

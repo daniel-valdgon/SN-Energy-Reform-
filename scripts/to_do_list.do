@@ -17,6 +17,14 @@
 *Update the paramter of pre-paid customers
 *Update the changes implemented 
 *Adapt subsidies analysis to use expenditure rather than quantities 
-	*1 See if it s consequential and fix 
-	*Check if using Q or expenditure gives the same result (This rpevents the double increse in consumption)
-	*It does matter if indirect effect of fuels is zero 
+	* See if it s consequential and fix 
+	* Check if using Q or expenditure gives the same result (This rpevents the double increse in consumption)
+	* It does matter if indirect effect of fuels is zero 
+
+
+
+
+
+
+
+
