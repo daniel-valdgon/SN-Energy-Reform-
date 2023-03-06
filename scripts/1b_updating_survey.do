@@ -184,14 +184,20 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		local subsidy_firms_base = (${cost_firms_svy}-${tar_firms_svy})/${cost_firms_svy}  // use WB energy data for 2021 (similar to IMF 2021) (125.9-115.2)/125.9
 		local share_elec_io_base $share_elec_io_base // Share of electricity in the IO sector 
 		
+		*Old code to delte ==>
+		*local indfuel_sub_svy= (-1)*((675 - 655)/675)*0.93 + ((553 - 469)/553)*0.07 // This prices are computed using the cost structure function of 2019 evaluated at international and national prices of 2019. See sheet fuel_survey_reference 
+		***//The cost structure of 2019 reports a selling price of 497 for Essence pirogue, not 469 as seen above.
+		*local subsidy_firms_base = -(124.4-113.11)/124.4  // tariffs from Petra xls for 2020, weighted using IMF weights 
+		*==>
+		
 		gen 	shock=`indfuel_sub_svy' if inlist(Secteur, 13) // fuel sector 
 		replace shock=`subsidy_firms_base'*`share_elec_io_base' if Secteur==22
 		
-		replace shock=0  if shock==.
+		dis " fuel `indfuel_sub_svy' elec `subsidy_firms_base'"
 		
+		replace shock=0  if shock==.
 		*Indirect effects 
 		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) fix
-		replace pind_shock=0 if fixed==1 
 		keep Secteur pind_shock
 	
 	tempfile io_fuel_sv_yr
@@ -220,9 +226,9 @@ Note: Grossing spending by fuel and electricity subsidies of base year
 		replace depan=depan*(1+${inf_20}/100)*(1+${inf_21}/100)*(1+${inf_22}/100)
 		*Substracting indirect effects 
 		gen depan_net_sub=depan/(1-pind_shock) //pind_shock debe ser positivo para que le reste correctamente al 1
+		
 		*Cleaning 
 		keep hhid depan_net_sub codpr
-			
 		gcollapse (sum) depan_net_sub, by(hhid codpr) 
 	
 	tempfile depan_nosubsidy

@@ -155,8 +155,7 @@ Compute VAT collected
 	import excel "$path_raw/IO_Matrix.xlsx", sheet("IO_aij") firstrow clear
 		
 		*Define fixed sectors 
-		local thefixed 22 32 33 34 13 //OJO QUE NO ESTABA EL SECTOR 13 FUELS
-		
+		local thefixed 22 32 33 34 13 	
 		gen fixed=0
 		foreach var of local thefixed {
 			replace fixed=1  if  Secteur==`var'
@@ -167,7 +166,7 @@ Compute VAT collected
 		replace shock=0  if shock==.
 	
 		*Indirect effects 
-		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) 
+		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) fix
 		
 	tempfile io_ind_sim
 	save `io_ind_sim', replace

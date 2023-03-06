@@ -49,7 +49,7 @@ Compute VAT collected
 	import excel "$path_raw/IO_Matrix.xlsx", sheet("IO_aij") firstrow clear
 		
 		*Define fixed sectors 
-		local thefixed 22 32 33 34 13 //OJO QUE NO ESTABA EL SECTOR 13 FUELS
+		local thefixed 22 32 33 34 13
 		
 		gen fixed=0
 		foreach var of local thefixed {
@@ -58,12 +58,11 @@ Compute VAT collected
 		
 		*Shock
 		gen shock=. 
-		*previous: gen shock=((${mp_butane}-${sp_butane})/${mp_butane})*0.17 if inlist(Secteur, 13) // butane is 17 percent of water, gas and electricity sector 
 		replace  shock=((${mp_industryfuel}-${sp_industryfuel})/${mp_industryfuel}) if inlist(Secteur, 13)
 		replace shock=0  if shock==. // we assume that oil sector of the IO is mostly represented by fuel and that the consumption of super-carburant is mostly concentrated on the household sector 
 	
 		*Indirect effects 
-		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) 
+		costpush C1-C35, fixed(fixed) priceshock(shock) genptot(ptot_shock) genpind(pind_shock) fix
 		
 	tempfile io_fuel
 	save `io_fuel', replace

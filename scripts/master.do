@@ -69,7 +69,7 @@ foreach adof in apoverty ftools gtools ereplace {
 }
 */
 
-global namexls	"simul_results_main"
+global namexls	"simul_results_baseline1"
 global numscenarios 1 2 3 4
 
 
@@ -93,13 +93,11 @@ foreach scenario in $numscenarios {
  ==============================================================================================*/
  
 *Rename parameters to the correspondent scenario
- 
 include "$p_scr/1a_rename_pmts.do"
 
 
 *Uprating
-
-include "$p_scr/1b_updating_survey.do"
+include "$p_scr/1b_updating_survey.do" //include "$p_scr/1b_updating_survey_old.do"
 
 /*===============================================================================================
 	Simulation 
@@ -111,9 +109,7 @@ include "$p_scr/2a_electricity.do"
 
 
 *Fuels 
-
-include "$p_scr/2b_fuels.do" 
-
+include "$p_scr/2b_fuels.do" // include "$p_scr/2b_fuels_old.do" 
 
 * Load CEQ data and compute parameters and and export into results 
 
