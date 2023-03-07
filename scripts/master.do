@@ -31,6 +31,7 @@ if "`c(username)'"=="WB419055" {
 	*Prepare data on consumption 
 	global path_raw "$proj/data/raw"
 	global path_ceq "$proj/data/raw"
+	global p_scr 	"$proj/scripts"
 } 
 
 if "`c(username)'"=="andre" {
@@ -41,20 +42,20 @@ if "`c(username)'"=="andre" {
 	*Prepare data on consumption 
 	global path_raw "$proj/data/raw"
 	global path_ceq "$proj/data/raw"
+	global p_scr 	"$proj/SN-Energy-Reform-/scripts"
 } 
 
 
 global p_res	"$proj/results"
 global p_o 		"$proj/data/output"
 global p_pre 	"$proj/pre_analysis"
-global p_scr 	"$proj/scripts"
 global presim	"$proj/data/raw/2_pre_sim"
 
 
 *===============================================================================
 // Run necessary ado files
 *===============================================================================
-		
+
 local files : dir "$p_scr/_ado" files "*.ado"
 foreach f of local files {
 	display("`f'")
@@ -62,14 +63,13 @@ foreach f of local files {
 }
 
 
-
 /*
-foreach adof in apoverty ftools gtools ereplace {
+foreach adof in apoverty ftools gtools ereplace mdesc{
 	cap ssc install `adof'
 }
 */
 
-global namexls	"simul_results_baseline1"
+global namexls	"simul_results"
 global numscenarios 1 2 3 4
 
 
