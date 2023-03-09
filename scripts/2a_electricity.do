@@ -14,7 +14,7 @@ Define tranches
 -------------------------------------------------------------------------------------*/	
 	
 	noi dis "************************************"
-	noi dis " Defining tranches scenario `j'"
+	noi dis " Defining tranches scenario `scenario'"
 	noi dis "************************************"
 
 	
@@ -142,6 +142,9 @@ Compute VAT collected
 	egen subsidy_elec_direct=rowtotal(subsidy1 subsidy2 subsidy3 subsidygdp)
 	replace subsidy_elec_direct=subsidy_elec_direct*6 // electricity consumption recorded in tranches is bimonthly 
 	
+	*Cost (this is required for one graph in the slides)
+	gen cost_elec = ${cost}*consumption_electricite*6
+	
 	tempfile vat_sub_tmp
 	save `vat_sub_tmp'
 
@@ -214,10 +217,35 @@ Compute VAT collected
 -------------------------------------------------------------------------------------*/	
 	egen subsidy_elec=rowtotal(subsidy_elec_direct subsidy_elec_indirect) // indirect effect is over depan that is already annualized 
 	
-	keep hhid subsidy_elec_direct subsidy_elec_indirect subsidy_elec vat_elec
+	preserve
+		merge 1:1 hhid using `output', nogen
+		save "$proj/data/temp/elec_tmp_scenario`scenario'.dta", replace
+	restore
+	
+	keep hhid subsidy_elec_direct subsidy_elec_indirect subsidy_elec vat_elec cost_elec
 
 	tempfile elec_tmp_dta
 	save `elec_tmp_dta', replace 
+
+	
+	
+
+/*-------------------------------------------------------------------------------------
+	Costs per deciles
+-------------------------------------------------------------------------------------*/	
+	
+	clear
+	use `elec_tmp_dta', clear
+	merge 1:1 hhid using `output', nogen
+	gen cost_elec_pc = cost_elec/hhsize
+	gen share_cost_elec_pc = cost_elec_pc/yd_pc
+	groupfunction [aw=pondih], mean (share_cost_elec_pc ) by(yd_deciles_pc) norestore
+	
+	export excel "$p_res/${namexls}.xlsx", sheet(elec_cost_deciles) first(variable) sheetreplace 
+	
+	
+	
+	
 	
 
 exit 

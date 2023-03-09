@@ -69,7 +69,7 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-global namexls	"simul_results"
+global namexls	"simul_results_main"
 global numscenarios 1 2 3 4
 
 
@@ -88,32 +88,32 @@ include "$p_scr/0_pull_pmts.do" // we need to load parameters again because pre_
 *Running multiple scenarios
 foreach scenario in $numscenarios {
 
-/*===============================================================================================
-	Preparing data:
- ==============================================================================================*/
- 
-*Rename parameters to the correspondent scenario
-include "$p_scr/1a_rename_pmts.do"
+	/*===============================================================================================
+		Preparing data:
+	 ==============================================================================================*/
+	 
+	*Rename parameters to the correspondent scenario
+	include "$p_scr/1a_rename_pmts.do"
 
 
-*Uprating
-include "$p_scr/1b_updating_survey.do" //include "$p_scr/1b_updating_survey_old.do"
+	*Uprating
+	include "$p_scr/1b_updating_survey.do" //include "$p_scr/1b_updating_survey_old.do"
 
-/*===============================================================================================
-	Simulation 
- ==============================================================================================*/
+	/*===============================================================================================
+		Simulation 
+	 ==============================================================================================*/
 
-*Electricity 
+	*Electricity 
 
-include "$p_scr/2a_electricity.do"
+	include "$p_scr/2a_electricity.do"
 
 
-*Fuels 
-include "$p_scr/2b_fuels.do" // include "$p_scr/2b_fuels_old.do" 
+	*Fuels 
+	include "$p_scr/2b_fuels.do" // include "$p_scr/2b_fuels_old.do" 
 
-* Load CEQ data and compute parameters and and export into results 
+	* Load CEQ data and compute parameters and and export into results 
 
-include "$p_scr/3a_outputs.do" //Note: this produces a temfile per scenario
+	include "$p_scr/3a_outputs.do" //Note: this produces a temfile per scenario
 
 }
 
@@ -135,6 +135,10 @@ foreach scenario in $numscenarios{
 	append using `calib_`scenario''
 }
 export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetreplace 
+
+
+
+
 
 
 
