@@ -13,6 +13,9 @@
 // *b.	Petra does not give tranches therefore we need to use tranches 
 
 *---------------- Pendent:
+
+*Add coverage by tranche and by good figure in the tool (Coverage can change with policy scenario for electricity)
+
 *Update of ppt for Jan
 	*a. Run the tool with the excel main
 	*b. Check that the tool rnew results match what I shared to Gabriela in the ppt on Friday
