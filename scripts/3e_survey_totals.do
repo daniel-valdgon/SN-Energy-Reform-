@@ -175,17 +175,32 @@ gen tranche3 = (tranche3_tool!=0 & tranche3_tool!=.)
 gen tranche2 = (tranche2_tool!=0 & tranche2_tool!=. & tranche3==0)
 gen tranche1 = (tranche1_tool!=0 & tranche1_tool!=. & tranche3==0 & tranche2==0)
 
-gen tranche_max = tranche1+2*tranche2+3*tranche3
-replace tranche_max = 4 if type_client==3 //DGP
-label def tranches 0 "No electricity spending" 1 "Tranche 1" 2 "Tranche 2" 3 "Tranche 3" 4 "DGP"
-label values tranche_max tranches
+*Andres formula 
+preserve 
+	gen tranche_max = tranche1+2*tranche2+3*tranche3
+	replace tranche_max = 4 if type_client==3 //DGP
+	label def tranches 0 "No electricity spending" 1 "Tranche 1" 2 "Tranche 2" 3 "Tranche 3" 4 "DGP"
+	label values tranche_max tranches
+	
+	tab tranche_max yd_deciles_pc [aw=pondih], mis matcell(tab_elec_tranches)
+	
+	clear
+	svmat tab_elec_tranches
+	
+	export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_tranches) first(variable) sheetreplace 
+restore 
 
-tab tranche_max yd_deciles_pc [aw=pondih], mis matcell(tab_elec_tranches)
+*Daniel's proposal 
 
-clear
-svmat tab_elec_tranches
-
-export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_tranches) first(variable) sheetreplace 
+	gen  tranche_gdp = type_client==3 //DGP
+	collapse (mean) tranche1 tranche2 tranche3 tranche_gdp [aw=pondih], by(yd_deciles_pc)
+	gen no_electr_sp=1-(tranche1+ tranche2 + tranche3 + tranche_gdp)
+	
+	foreach v in no_electr_sp tranche1  tranche2  tranche3  tranche_gdp {
+		replace `v'=100*`v'
+	}
+	
+	export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_tranches2) first(variable) sheetreplace 
 
 
 

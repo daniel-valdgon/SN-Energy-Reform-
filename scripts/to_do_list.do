@@ -18,16 +18,36 @@
 	*b. Check that the tool rnew results match what I shared to Gabriela in the ppt on Friday
 	*c. Update ppt with figures that are still missing (Absolute incidence in billions)
 	
+*Minor improvements: 	
+	*-Change the strategy to split fuels by splitting them at the very beggining: q_fuel_ord q_fuel_gasoil q_fuel_super
+	*-Update the paramter of pre-paid customers
 	
-*Change the strategy to split fuels by splitting them at the very beggining: q_fuel_ord q_fuel_gasoil q_fuel_super
-*Update the paramter of pre-paid customers
-*Update the changes implemented 
-*Adapt subsidies analysis to use expenditure rather than quantities 
-	* See if its consequential and fix  to use s/(1-s) rather than q. This would be better to have a spending completely affected by the netdown
-	* Also it will allow that shocks to fuel affect the proper spending on electricity (in the case, which does not apply, that electricity were not regulated) 
+	*-Adapt subsidies analysis to use expenditure rather than quantities 
+	   *See if its consequential and fix  to use s/(1-s) rather than q. This would be better to have a spending completely affected by the netdown
+		* Also it will allow to prepare the netdown and the gross up more properlty. Firts subsidies later VAT. I tiwll allow that in the future if a sector is not regulated, shocks to fuel subsidies increase the VAT collected in electricity via indirect effects.  
 
-*Separate fuels by butane, gasoline (super, premium), kerosene
-*Separate electricity subsidies by subsidy tranche 1, trance 2 and tranche 3
+* Modification to examine policies:
+	*-Separate fuels by butane, gasoline (super, premium), kerosene
+	*-Separate electricity subsidies by subsidy tranche 1, trance 2 and tranche 3
+	*-Estimate elasticities to policies: 
+		*(not stochastic) but just a change up to 15 percent on each parameters 
+			* tariff rates by tranche and pre-paid
+			* prepaid policy
+			* Size of tranches
+			* each of the fuel prices 
+			* Compensation policies : expansionof program, UCT, energy CT
+			* Revenue neutral increases 
+*Use Demand elasticities 
+*Use forecasted growth rate for 2023 in everything, also in oil prices
+
+*Prepare one pager on the increase of electricity tariffs. Share of subsidized electricity
+*Search IO matrix
+
+*Elasticities in Senegal 
+	// https://reader.elsevier.com/reader/sd/pii/S014098831100106X?token=6B931CA4651B5EA105097274A3B27268F7713A51711A945F91CDAEC96E028B761B495FAFD3DB4C1933708BA3FB5A8666&originRegion=us-east-1&originCreation=20230309054705
+	
+	//propose which data do we need to measure elasticity
+
  
 
 
