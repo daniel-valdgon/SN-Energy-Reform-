@@ -86,11 +86,24 @@ Compute VAT collected
 	save `Xwalk_IO_est_fuel', replace 
 	
 	*Indirect effects of subsidies 
-	use `depan_nosubsidy', clear // use "$path_ceq/05_purchases_hhid_codpr.dta", clear 
+	use `depan_nosubsidy', clear // use "$path_ceq/2_pre_sim/05_purchases_hhid_codpr.dta", clear 
 	
 		merge m:1 codpr using `Xwalk_IO_est_fuel' , assert(matched using) keep(matched) nogen  
 		
-		gen subsidy_fuel_indirect=pind_shock*depan_net_sub
+		* 211	Transport urbain en bus
+		* 213	Transport urbain en train
+		* 214	Transport urbain/rural par voie fluviale
+		* 215	Transport urbain/rural par traction animale
+		* 212	Transport urbain/rural en moto-taxi
+		* 407	Transport interlocalité par eau (bateau, pirogue, pinasse)
+		
+		if $subs_public_transport == 1{
+			gen subsidy_fuel_indirect=pind_shock*depan_net_sub if !inlist(codpr, 211, 214, 407)
+			replace subsidy_fuel_indirect=0 if subsidy_fuel_indirect==.
+		}
+		if $subs_public_transport == 0{
+			gen subsidy_fuel_indirect=pind_shock*depan_net_sub
+		}
 		
 		gcollapse (sum) subsidy_fuel_indirect , by(hhid) 
 	

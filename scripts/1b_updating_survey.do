@@ -22,7 +22,7 @@
 use "$path_ceq/output.dta", clear 
 
 *Updating 
-keep  hhid yd_deciles_pc yd_pc  hhsize pondih all zref hhweight
+keep  hhid yd_deciles_pc yd_pc yn_pc hhsize pondih all zref hhweight am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc
 
 *Updating population
 clonevar  hhweight_orig=hhweight
@@ -32,9 +32,23 @@ foreach v in pondih hhweight {
 
 
 *Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
-foreach v in yd_pc zref {
-	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
+if $uprate_transfers == 1{
+    foreach v in yd_pc zref {
+		replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
+	}
 }
+
+*If we fix transfers to 2018 prices and only uprate the net market income:
+if $uprate_transfers == 0{
+    foreach v in yn_pc zref {
+		replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
+	}
+	egen  double yd_pc2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
+	replace yd_pc2=0 if yd_pc2==.
+	replace yd_pc = yd_pc2
+	drop yd_pc2
+}
+
 
 
 tempfile output

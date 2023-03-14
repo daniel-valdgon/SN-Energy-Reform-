@@ -3,30 +3,51 @@ run "$p_scr/_ado/sp_groupfunction.ado"
 run "$p_scr/_ado/groupfunction.ado"
 run "$p_scr/_ado/costpush.ado"
 
-local income yd   // before I have a local here but it presented some problems 
-local ind_transf subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec 
-local ind_tax 	vat_elec vat_fuel
-local all_groups all_policies all_tax all_subs all_elec all_fuel
+local income yd   	// before I have a local here but it presented some problems 
+local ind_transf 	subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec 
+local ind_tax 		vat_elec vat_fuel
+local ind_miti		am_new_pnbsf
+local all_groups 	all_policies_miti all_policies all_tax all_subs all_elec all_fuel
 
-local policies `ind_transf' `ind_tax' `all_groups'
+local policies `ind_transf' `ind_tax' `ind_miti' `all_groups'
 local pline zref // line_19 line_32 line_55
 
 
 
 use `output', clear 
 
-keep  hhid yd_deciles_pc yd_pc  hhsize pondih all zref hhweight
+keep  hhid yd_deciles_pc yd_pc yn_pc hhsize pondih all zref hhweight am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc
 merge 1:1 hhid using `fuel_tmp_dta', nogen 
 merge 1:1 hhid using `elec_tmp_dta', nogen 
 
+*Mitigation measure: new PNBSF policy
+merge 1:1 hhid using `new_PNBSF', nogen
+gen old_beneficiaire_PNBSF = (am_BNSF_pc>0)
+count if old_beneficiaire_PNBSF==1										//Every previous beneficiary...
+local old=r(N)
+count if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==1			//...should continue being one
+local new=r(N)
+assert `old'==`new'
+
+count if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==0
+dis "There are " r(N) " new beneficiaries of the PNBSF program"
+
+gen am_new_pnbsf = 0
+replace am_new_pnbsf = ${PNBSF_transfer_increase} if old_beneficiaire_PNBSF==1
+replace am_new_pnbsf = ${PNBSF_transfer_increase}+100000 if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
+*new disposable income:
+*clonevar yd_pc = yd_pc_before_mitigation 
+*replace yd_pc = yd_pc+am_new_pnbsf_pc
 
 
-*Adding electricity and fuel 
-egen all_subs=rowtotal(subsidy_fuel subsidy_elec )
-egen all_tax=rowtotal(vat_elec vat_fuel)
-gen all_elec=subsidy_elec-vat_elec
-gen all_fuel=subsidy_fuel-vat_fuel
-gen all_policies=all_subs-all_tax
+
+*Adding policies
+egen all_subs			=rowtotal(subsidy_fuel subsidy_elec)
+egen all_tax			=rowtotal(vat_elec vat_fuel)
+gen all_elec			=subsidy_elec-vat_elec
+gen all_fuel			=subsidy_fuel-vat_fuel
+gen all_policies		=all_subs-all_tax
+gen all_policies_miti	=all_subs-all_tax+am_new_pnbsf
 
 *Compute pc values 	
 foreach var of local policies {
@@ -42,6 +63,8 @@ foreach x in income policies  {
 	}
 }
 /*test : dis "`income_pc'" ,  dis "`policies_pc'" */
+
+
 
 tempfile dta_pc
 save `dta_pc', replace 
@@ -59,17 +82,18 @@ save "$p_o/${namexls}.dta", replace
 	foreach var of local  ind_tax {
 		gen inc_`var'=yd_pc-`var'_pc         // effect with the policy for indirect taxes
 		local mc_income `mc_income' inc_`var'   //  Store varnames in list mc_income
-		
-		}
-	
+	}
 	foreach var of local ind_transf {
 		gen inc_`var'=yd_pc+`var'_pc 		 // effect with the policy for subsidies
 		local mc_income `mc_income' inc_`var'   // Store varnames in list mc_income
+	}
+	foreach var of local ind_miti {
+		gen inc_`var'=yd_pc+`var'_pc 		 // effect with the policy for subsidies
+		local mc_income `mc_income' inc_`var'   // Store varnames in list mc_income
+	}
 		
-		}
 		
-		
-	foreach var in all_policies all_tax all_subs all_elec all_fuel {
+	foreach var of local all_groups {
 		
 		if "`var'"=="all_tax" {
 			gen inc_`var'=yd_pc-`var'_pc 		 // effect of all policies defined as subs-tax 
@@ -99,6 +123,10 @@ use `dta_pc', clear
 		gen c_share_`x'_pc= -`x'_pc/yd_pc if `x'_pc>0 & `x'_pc!=. //conditional incidence
 	}		
 	foreach x of local  ind_transf {
+		gen share_`x'_pc= `x'_pc/yd_pc   
+		gen c_share_`x'_pc= `x'_pc/yd_pc  if `x'_pc>0 //conditional incidence
+	}		
+	foreach x of local  ind_miti {
 		gen share_`x'_pc= `x'_pc/yd_pc   
 		gen c_share_`x'_pc= `x'_pc/yd_pc  if `x'_pc>0 //conditional incidence
 	}

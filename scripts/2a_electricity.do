@@ -233,7 +233,7 @@ Compute VAT collected
 /*-------------------------------------------------------------------------------------
 	Costs per deciles
 -------------------------------------------------------------------------------------*/	
-	
+	/*
 	clear
 	use `elec_tmp_dta', clear
 	merge 1:1 hhid using `output', nogen
@@ -242,7 +242,7 @@ Compute VAT collected
 	groupfunction [aw=pondih], mean (share_cost_elec_pc ) by(yd_deciles_pc) norestore
 	
 	export excel "$p_res/${namexls}.xlsx", sheet(elec_cost_deciles) first(variable) sheetreplace 
-	
+	*/
 	
 	
 	

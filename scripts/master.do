@@ -69,7 +69,7 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-global namexls	"simul_results_main"
+global namexls	"simul_results_mitigation"
 global numscenarios 1 2 3 4
 
 
@@ -77,7 +77,7 @@ global numscenarios 1 2 3 4
 	Pre-simulation
  ==============================================================================================*/
 
-include "$p_scr/pre_analysis/pre_master.do" // numscenarios needs to be run first because this do-file call paramters 
+include "$p_scr/pre_analysis/pre_master.do" // numscenarios needs to be run first because this do-file calls paramters 
 
 /*===============================================================================================
 	Load pmts 
@@ -104,16 +104,17 @@ foreach scenario in $numscenarios {
 	 ==============================================================================================*/
 
 	*Electricity 
-
 	include "$p_scr/2a_electricity.do"
-
 
 	*Fuels 
 	include "$p_scr/2b_fuels.do" // include "$p_scr/2b_fuels_old.do" 
+	
+	*Mitigation policy 
+	include "$p_scr/2c_mitigations.do" // include "$p_scr/2b_fuels_old.do" 
 
 	* Load CEQ data and compute parameters and and export into results 
 
-	include "$p_scr/3a_outputs.do" //Note: this produces a temfile per scenario
+	include "$p_scr/3a_outputs.do" //Note: this produces a tempfile per scenario
 
 }
 
@@ -126,8 +127,9 @@ foreach scenario in $numscenarios{
 
 export excel "$p_res/${namexls}.xlsx", sheet(stats) first(variable) sheetreplace 
 
+
 /*===============================================================================================
-	Calibration stats 
+	Calibration stats and other stats
  ==============================================================================================*/
 
 clear
@@ -136,6 +138,12 @@ foreach scenario in $numscenarios{
 }
 export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetreplace 
 
+
+
+*Tables of electricity consumption type per decile 
+
+*loop para tener esta tabla para cada scenario
+include "$p_scr/3e_survey_totals.do" // include "$p_scr/2b_fuels_old.do" 
 
 
 
