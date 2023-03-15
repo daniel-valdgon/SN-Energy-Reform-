@@ -89,11 +89,11 @@ Compute VAT collected
 	
 	*Adding the VAT exemptions: VAT is paid for households who consume tranche 3
 		
-	if "${vatexempt_tra}"=="00" {
+	if "${vatexempt_tra}"=="0" {
 		egen vat_elec=rowtotal(vat_t1 vat_t2 vat_t3 vat_dgp) if tranche3_tool>0
 		replace vat_elec=0 if tranche3_tool==0
 	}
-	if "${vatexempt_tra}"=="01" {
+	if "${vatexempt_tra}"=="1" {
 		egen vat_elec=rowtotal(vat_t2 vat_t3 vat_dgp) if tranche3_tool>0
 		replace vat_elec=0 	if tranche3_tool==0
 		

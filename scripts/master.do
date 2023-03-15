@@ -69,7 +69,8 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-global namexls	"simul_results_mitigation"
+*global namexls	"simul_results_mitigation_PSIA"
+global namexls	"simul_results_VAT"
 global numscenarios 1 2 3 4
 
 

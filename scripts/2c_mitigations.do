@@ -63,8 +63,8 @@ foreach var of local department {
 		tempfile auxiliar_PNBSF_`var'
 	
 		foreach z of local gente {
-			replace count_PBSF_`var'=hhweight if count_id==1
-			replace count_PBSF_`var'= count_PBSF_`var'[`=`z'-1']+hhweight[`z'] if count_id==`z'
+			qui replace count_PBSF_`var'=hhweight if count_id==1
+			qui replace count_PBSF_`var'= count_PBSF_`var'[`=`z'-1']+hhweight[`z'] if count_id==`z'
 		}
 	
 		save `auxiliar_PNBSF_`var''
@@ -84,18 +84,38 @@ restore
 merge 1:1 hhid using `auxiliar_PNBSF' , nogen keepusing(count_PBSF*) // *merge 1:1 hhid using "$dta/auxiliar_PNBSF.dta", nogen keepusing(count_PBSF*)
 
 
-
 gen new_beneficiaire_PNBSF=0
 
-levelsof departement, local(department)
 
-foreach var of local department { 
-	replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'}*${PNBSF_benef_increase} & departement==`var'
-} 
+
+if $PMT_targeting_BSF == 1{
+	levelsof departement, local(department)
+	foreach var of local department { 
+		replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'}*${PNBSF_benef_increase} & departement==`var'
+	} 
+}
+
+if $PMT_targeting_BSF == 0{
+	ren pmt_seed rannum
+	sort departement rannum
+	levelsof departement, local(department)
+	foreach var of local department { 
+		replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'} & departement==`var'
+		*I want to modify the increase taking into account the households that were not included because of the discrete nature of hhweight
+		sum count_PBSF_`var' if new_beneficiaire_PNBSF==1 & departement==`var'
+		local hh_included = r(max)
+		local hh_notincluded = ${PNBSF_Beneficiaires`var'}-`hh_included'
+		dis "${PNBSF_Beneficiaires`var'} - `hh_included' = `hh_notincluded'"
+		gen count_random = sum(hhweight) if departement==`var' & new_beneficiaire_PNBSF==0
+		replace new_beneficiaire_PNBSF=1 if count_random<= ${PNBSF_Beneficiaires`var'}*(${PNBSF_benef_increase}-1)+`hh_notincluded' & departement==`var'
+		drop count_random
+	}
+}
 
 keep hhid hhweight new_beneficiaire_PNBSF
 
 sum  new_beneficiaire_PNBSF [aw=hhweight]
+tab  new_beneficiaire_PNBSF [iw=hhweight]
 
 
 tempfile new_PNBSF

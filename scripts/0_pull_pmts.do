@@ -37,7 +37,7 @@ foreach scenario in $numscenarios {
 	sp19_butane sp19_pet_lamp sp19_gasoil sp19_ordinaire sp19_pirogue sp19_super sp19_fuel sp19_industryfuel ///
 	butane_uprating pet_lamp_uprating gasoil_uprating ordinaire_uprating pirogue_uprating super_uprating fuel_uprating industryfuel_uprating ///
 	butane_sub_svy pet_lamp_sub_svy gasoil_sub_svy ordinaire_sub_svy pirogue_sub_svy super_sub_svy fuel_sub_svy industryfuel_sub_svy cost_firms_svy tar_firms_svy ///
-	share_elec_io_base PNBSF_transfer_increase PNBSF_benef_increase subs_public_transport uprate_transfers {
+	share_elec_io_base PNBSF_transfer_increase PNBSF_benef_increase subs_public_transport uprate_transfers PMT_targeting_BSF {
 		global `v'_s`scenario' = ""
 		levelsof `v' if scenario==`scenario', local(value)
 		global `v'_s`scenario' = `value'
