@@ -89,11 +89,11 @@ Compute VAT collected
 	
 	*Adding the VAT exemptions: VAT is paid for households who consume tranche 3
 		
-	if "${vatexempt_tra}"=="00" {
+	if "${vatexempt_tra}"=="0" {
 		egen vat_elec=rowtotal(vat_t1 vat_t2 vat_t3 vat_dgp) if tranche3_tool>0
 		replace vat_elec=0 if tranche3_tool==0
 	}
-	if "${vatexempt_tra}"=="01" {
+	if "${vatexempt_tra}"=="1" {
 		egen vat_elec=rowtotal(vat_t2 vat_t3 vat_dgp) if tranche3_tool>0
 		replace vat_elec=0 	if tranche3_tool==0
 		
@@ -233,7 +233,7 @@ Compute VAT collected
 /*-------------------------------------------------------------------------------------
 	Costs per deciles
 -------------------------------------------------------------------------------------*/	
-	
+	/*
 	clear
 	use `elec_tmp_dta', clear
 	merge 1:1 hhid using `output', nogen
@@ -242,7 +242,7 @@ Compute VAT collected
 	groupfunction [aw=pondih], mean (share_cost_elec_pc ) by(yd_deciles_pc) norestore
 	
 	export excel "$p_res/${namexls}.xlsx", sheet(elec_cost_deciles) first(variable) sheetreplace 
-	
+	*/
 	
 	
 	
