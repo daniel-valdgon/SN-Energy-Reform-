@@ -16,6 +16,9 @@
 
 *Add coverage by tranche and by good figure in the tool (Coverage can change with policy scenario for electricity)
 
+*Thinking on summarizing the macro validation of total quantities and total spending on the subsidy in two figures. Checks for gasoline spending among the poor using assets: imputing gasoline consumption for households who have a car.
+
+
 *Update of ppt for Jan
 	*a. Run the tool with the excel main
 	*b. Check that the tool rnew results match what I shared to Gabriela in the ppt on Friday
