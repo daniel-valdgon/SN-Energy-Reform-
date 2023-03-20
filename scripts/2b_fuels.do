@@ -100,9 +100,11 @@ Compute VAT collected
 		if $subs_public_transport == 1{
 			gen subsidy_fuel_indirect=pind_shock*depan_net_sub if !inlist(codpr, 211, 214, 407)
 			replace subsidy_fuel_indirect=0 if subsidy_fuel_indirect==.
+			assert subsidy_fuel_indirect!=.
 		}
 		if $subs_public_transport == 0{
 			gen subsidy_fuel_indirect=pind_shock*depan_net_sub
+			assert subsidy_fuel_indirect!=.
 		}
 		
 		gcollapse (sum) subsidy_fuel_indirect , by(hhid) 

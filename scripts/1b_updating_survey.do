@@ -49,7 +49,7 @@ if $uprate_transfers == 0{
 	drop yd_pc2
 }
 
-
+label var yd_pc "Baseline disposable income"
 
 tempfile output
 save `output', replace 

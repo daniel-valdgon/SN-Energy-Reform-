@@ -83,11 +83,7 @@ save "$p_o/${namexls}.dta", replace
 		gen inc_`var'=yd_pc-`var'_pc         // effect with the policy for indirect taxes
 		local mc_income `mc_income' inc_`var'   //  Store varnames in list mc_income
 	}
-	foreach var of local ind_transf {
-		gen inc_`var'=yd_pc+`var'_pc 		 // effect with the policy for subsidies
-		local mc_income `mc_income' inc_`var'   // Store varnames in list mc_income
-	}
-	foreach var of local ind_miti {
+	foreach var in `ind_transf' `ind_miti' {
 		gen inc_`var'=yd_pc+`var'_pc 		 // effect with the policy for subsidies
 		local mc_income `mc_income' inc_`var'   // Store varnames in list mc_income
 	}
@@ -122,11 +118,7 @@ use `dta_pc', clear
 		gen share_`x'_pc= -`x'_pc/yd_pc 
 		gen c_share_`x'_pc= -`x'_pc/yd_pc if `x'_pc>0 & `x'_pc!=. //conditional incidence
 	}		
-	foreach x of local  ind_transf {
-		gen share_`x'_pc= `x'_pc/yd_pc   
-		gen c_share_`x'_pc= `x'_pc/yd_pc  if `x'_pc>0 //conditional incidence
-	}		
-	foreach x of local  ind_miti {
+	foreach x in `ind_transf' `ind_miti' {
 		gen share_`x'_pc= `x'_pc/yd_pc   
 		gen c_share_`x'_pc= `x'_pc/yd_pc  if `x'_pc>0 //conditional incidence
 	}
