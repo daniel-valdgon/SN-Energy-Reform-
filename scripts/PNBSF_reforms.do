@@ -219,11 +219,11 @@ foreach targeting in 0 1{
 
 	*3. Poverty and Inequality
 	preserve
-		keep if new_beneficiaire_PNBSF == 1 & old_beneficiaire_PNBSF==0
-		collapse (sum) hhweight, by(yd_deciles_pc)
-		rename hhweight new_benefs_`targeting'
-		tempfile deciles_`targeting'
-		save `deciles_`targeting'', replace 	
+		gen yd_pc_pnbsf = yd_pc + am_new_pnbsf
+		sp_groupfunction [aw=pondih], gini(yd_pc yd_pc_pnbsf) theil(yd_pc yd_pc_pnbsf) poverty(yd_pc yd_pc_pnbsf) povertyline(zref)  by(all) 
+		gen targeting=`targeting'
+		tempfile sp_`targeting'
+		save `sp_`targeting'', replace 	
 	restore
 
 
@@ -260,3 +260,12 @@ export excel "$p_res/${namexls}.xlsx", sheet(benefs_by_dep) first(variable) shee
 use `deciles_0', clear
 merge 1:1 yd_deciles_pc using  `deciles_1'
 export excel "$p_res/${namexls}.xlsx", sheet(benefs_by_decile) first(variable) sheetreplace 
+
+
+use `sp_0', clear
+append using  `sp_1'
+export excel "$p_res/${namexls}.xlsx", sheet(stats) first(variable) sheetreplace 
+
+
+
+
