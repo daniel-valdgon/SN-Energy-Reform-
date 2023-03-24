@@ -31,34 +31,33 @@ foreach v in pondih hhweight {
 }
 
 
-*Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
+/*Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
 if $uprate_transfers == 1{
     foreach v in yd_pc zref {
 		replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 	}
-}
+}*/
 
 *If we fix transfers to 2018 prices and only uprate the net market income:
-if $uprate_transfers == 0{
-    foreach v in yn_pc zref {
-		replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
-	}
-	egen  double yd_pc2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
-	replace yd_pc2=0 if yd_pc2==.
-	replace yd_pc = yd_pc2
-	drop yd_pc2
-	
-	*We need new income deciles
-	rename yd_deciles_pc old_yd_deciles_pc
-	sort yd_pc, stable 
-	gen gens = sum(pondih)
-	sum gens
-	replace gens = gens/r(max)
-	gen yd_deciles_pc = ceil(gens*10)
-	drop gens
-	tab yd_deciles_pc [iw=pondih]
-	recode yd_deciles_pc (0=.)
+foreach v in yn_pc zref {
+	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 }
+egen  double yd_pc2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
+replace yd_pc2=0 if yd_pc2==.
+replace yd_pc = yd_pc2
+drop yd_pc2
+
+*We need new income deciles
+rename yd_deciles_pc old_yd_deciles_pc
+sort yd_pc, stable 
+gen gens = sum(pondih)
+sum gens
+replace gens = gens/r(max)
+gen yd_deciles_pc = ceil(gens*10)
+drop gens
+tab yd_deciles_pc [iw=pondih]
+recode yd_deciles_pc (0=.)
+
 
 label var yd_pc "Baseline disposable income"
 

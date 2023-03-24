@@ -64,7 +64,7 @@ foreach targeting in 0 1{
 	This database already contains the PMT variable, which I need in order to assign observations to the program.
 	*/
 
-	*local targeting 0
+	local targeting 0
 	
 	set seed 1234
 	use  "$presim/07_dir_trans_PMT.dta", replace // hh level dataset 1.7 mlln
@@ -81,7 +81,11 @@ foreach targeting in 0 1{
 
 	gen new_beneficiaire_PNBSF=0
 	gen new_beneficiaire_PNBSF_menos=0
-
+	
+	levelsof departement, local(department)
+	foreach var of local department { 
+		replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'}*${PNBSF_benef_increase} & departement==`var'
+	} 
 
 	if `targeting' == 1{
 		levelsof departement, local(department)
