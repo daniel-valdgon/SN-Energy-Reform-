@@ -64,7 +64,8 @@ foreach targeting in 0 1{
 	This database already contains the PMT variable, which I need in order to assign observations to the program.
 	*/
 
-
+	*local targeting 0
+	
 	set seed 1234
 	use  "$presim/07_dir_trans_PMT.dta", replace // hh level dataset 1.7 mlln
 
@@ -99,7 +100,10 @@ foreach targeting in 0 1{
 			replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'} & departement==`var'
 			*I want to modify the increase taking into account the households that were not included because of the discrete nature of hhweight
 			sum count_PBSF_`var' if new_beneficiaire_PNBSF==1 & departement==`var'
-			local hh_included = r(max)
+			local hh_included = 0
+			if r(N)!=0{
+				local hh_included = r(max)
+			}
 			local hh_notincluded = ${PNBSF_Beneficiaires`var'}-`hh_included'
 			dis "${PNBSF_Beneficiaires`var'} - `hh_included' = `hh_notincluded'"
 			gen count_random = sum(hhweight) if departement==`var' & new_beneficiaire_PNBSF==0
@@ -169,7 +173,7 @@ foreach targeting in 0 1{
 	dis "There are " r(N) " new beneficiaries of the PNBSF program"
 	sum hhweight if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==0
 	local hhs_newb = r(mean)*r(N)
-	dis "There are " `hhs_newb' " new beneficiaries of the PNBSF program"
+	dis as result "There are " `hhs_newb' " new beneficiaries of the PNBSF program"
 
 
 	gen am_new_pnbsf = 0
@@ -178,8 +182,18 @@ foreach targeting in 0 1{
 	*new disposable income:
 	*clonevar yd_pc = yd_pc_before_mitigation 
 	*replace yd_pc = yd_pc+am_new_pnbsf_pc
-
-
+	
+	*We need to redefine deciles based on the new disposable income
+	rename yd_deciles_pc old_yd_deciles_pc
+	sort yd_pc, stable 
+	gen gens = sum(pondih)
+	sum gens
+	replace gens = gens/r(max)
+	gen yd_deciles_pc = ceil(gens*10)
+	drop gens
+	tab yd_deciles_pc [iw=pondih]
+	recode yd_deciles_pc (0=.)
+	
 
 	*Checking if everything makes sense
 	*1. Department statistics
@@ -194,9 +208,23 @@ foreach targeting in 0 1{
 		save `dep_stats_`targeting'', replace 	
 	restore
 
-	*1. Department statistics
+	*2. Percentage of households per decile
+	preserve
+		keep if new_beneficiaire_PNBSF == 1 & old_beneficiaire_PNBSF==0
+		collapse (sum) hhweight, by(yd_deciles_pc)
+		rename hhweight new_benefs_`targeting'
+		tempfile deciles_`targeting'
+		save `deciles_`targeting'', replace 	
+	restore
 
-
+	*3. Poverty and Inequality
+	preserve
+		keep if new_beneficiaire_PNBSF == 1 & old_beneficiaire_PNBSF==0
+		collapse (sum) hhweight, by(yd_deciles_pc)
+		rename hhweight new_benefs_`targeting'
+		tempfile deciles_`targeting'
+		save `deciles_`targeting'', replace 	
+	restore
 
 
 
@@ -226,3 +254,9 @@ foreach targeting in 0 1{
 use `dep_stats_0', clear
 merge 1:1 departement using  `dep_stats_1'
 export excel "$p_res/${namexls}.xlsx", sheet(benefs_by_dep) first(variable) sheetreplace 
+
+
+
+use `deciles_0', clear
+merge 1:1 yd_deciles_pc using  `deciles_1'
+export excel "$p_res/${namexls}.xlsx", sheet(benefs_by_decile) first(variable) sheetreplace 

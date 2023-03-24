@@ -47,6 +47,17 @@ if $uprate_transfers == 0{
 	replace yd_pc2=0 if yd_pc2==.
 	replace yd_pc = yd_pc2
 	drop yd_pc2
+	
+	*We need new income deciles
+	rename yd_deciles_pc old_yd_deciles_pc
+	sort yd_pc, stable 
+	gen gens = sum(pondih)
+	sum gens
+	replace gens = gens/r(max)
+	gen yd_deciles_pc = ceil(gens*10)
+	drop gens
+	tab yd_deciles_pc [iw=pondih]
+	recode yd_deciles_pc (0=.)
 }
 
 label var yd_pc "Baseline disposable income"
