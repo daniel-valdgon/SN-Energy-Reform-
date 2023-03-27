@@ -71,10 +71,10 @@ gen increase_pcnt = (tariff_reform_pkwh-tariff_baseline_pkwh)/tariff_baseline_pk
 bys type_client:sum increase_pcnt [aw=pondih]
 
 gen lnincrease_pcnt = ln(increase_pcnt+sqrt(increase_pcnt^2+1))
-histogram increase_pcnt [fw=round(pondih)] if increase_pcnt>=0 & increase_pcnt<=1
+*histogram increase_pcnt [fw=round(pondih)] if increase_pcnt>=0 & increase_pcnt<=1
 
 
-br if increase_pcnt>1
+*br if increase_pcnt>1
 
 
 

@@ -1,4 +1,4 @@
-*============================================================================================
+/*============================================================================================
  ======================================================================================
 	Project:   VAT and Subsidies Tranche
 	Author:     Daniel 
@@ -18,7 +18,11 @@
 *----------------0. Geographical and uprating parameters 
  ==============================================================================================*/
 
-global namexls	"PNBSF_reform"
+*global p_res "C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform"
+
+global p_res "C:\Users\andre\Dropbox\Energy_Reform\results"
+
+global namexls	"PNBSF_reform_r0"
 
 import excel "$p_res/${namexls}.xlsx", sheet("PNBSF_deps") first clear cellrange(B4)
 
@@ -80,10 +84,7 @@ foreach targeting in 0 1{
 	gen new_beneficiaire_PNBSF=0
 	gen new_beneficiaire_PNBSF_menos=0
 
-	levelsof departement, local(department)
-	foreach var of local department { 
-		replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'}*${PNBSF_benef_increase} & departement==`var'
-	} 
+ 
 
 	if `targeting' == 1{
 		levelsof departement, local(department)
@@ -179,12 +180,9 @@ foreach targeting in 0 1{
 
 
 	gen am_new_pnbsf = 0
-	replace am_new_pnbsf = ${PNBSF_transfer_increase}/hhsize if old_beneficiaire_PNBSF==1
-	replace am_new_pnbsf = (${PNBSF_transfer_increase}+100000)/hhsize if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
-	
-	*new disposable income:
-	*clonevar yd_pc = yd_pc_before_mitigation 
-	*replace yd_pc = yd_pc+am_new_pnbsf_pc
+	replace am_new_pnbsf = ${PNBSF_transfer_increase} if old_beneficiaire_PNBSF==1
+	replace am_new_pnbsf = ${PNBSF_transfer_increase}+100000 if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
+	gen am_new_pnbsf_pc = am_new_pnbsf/hhsize
 
 	*We need to redefine deciles based on the new disposable income
 	rename yd_deciles_pc old_yd_deciles_pc
@@ -222,16 +220,12 @@ foreach targeting in 0 1{
 
 	*3. Poverty and Inequality
 	preserve
-		gen yd_pc_pnbsf = yd_pc + am_new_pnbsf
+		gen yd_pc_pnbsf = yd_pc + am_new_pnbsf_pc
 		sp_groupfunction [aw=pondih], gini(yd_pc yd_pc_pnbsf) theil(yd_pc yd_pc_pnbsf) poverty(yd_pc yd_pc_pnbsf) povertyline(zref)  by(all) 
 		gen targeting=`targeting'
 		tempfile sp_`targeting'
 		save `sp_`targeting'', replace 	
 	restore
-
-
-
-
 
 
 }

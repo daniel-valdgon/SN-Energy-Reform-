@@ -31,18 +31,17 @@ foreach v in pondih hhweight {
 }
 
 
-/*
-Previous computations uprating all income sources by inflation 
-Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
-if $uprate_transfers == 1{
-    foreach v in yd_pc zref {
-		replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
-	}
+
+/*Previous computations uprating all income sources by inflation 
+*Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
+foreach v in yd_pc zref {
+	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 }
 */
 
-*If we fix transfers to 2018 prices and only uprate the net market income:
-foreach v in yn_pc zref {
+
+*If we fix PNSF transfers to 2018 prices and uprate the net market income and the other transfers:
+foreach v in yn_pc zref am_bourse_pc am_Cantine_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc am_BNSF_pc {
 	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 }
 
@@ -51,14 +50,14 @@ egen  double yd_pc2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc am_su
 replace yd_pc2=0 if yd_pc2==.
 replace yd_pc = yd_pc2
 drop yd_pc2
-
-*We need new income deciles
+/*
+We need new income deciles
 rename yd_deciles_pc old_yd_deciles_pc
 set seed 8932
 _ebin yd_pc [aw=pondih], nq(10) gen(yd_deciles_pc) // Other option is quantiles but EPL use _ebin command 
 recode yd_deciles_pc (0=.) // one case which should not be missing 
 label var yd_pc "Baseline disposable income"
-
+*/
 tempfile output
 save `output', replace 
 
