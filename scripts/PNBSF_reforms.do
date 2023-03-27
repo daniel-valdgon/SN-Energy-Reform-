@@ -62,7 +62,7 @@ foreach targeting in 0 1{
 	This database already contains the PMT variable, which I need in order to assign observations to the program.
 	*/
 
-	local targeting 0
+	*local targeting 0
 
 	set seed 1234
 	use  "$presim/07_dir_trans_PMT.dta", replace // hh level dataset 1.7 mlln
@@ -179,8 +179,9 @@ foreach targeting in 0 1{
 
 
 	gen am_new_pnbsf = 0
-	replace am_new_pnbsf = ${PNBSF_transfer_increase} if old_beneficiaire_PNBSF==1
-	replace am_new_pnbsf = ${PNBSF_transfer_increase}+100000 if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
+	replace am_new_pnbsf = ${PNBSF_transfer_increase}/hhsize if old_beneficiaire_PNBSF==1
+	replace am_new_pnbsf = (${PNBSF_transfer_increase}+100000)/hhsize if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
+	
 	*new disposable income:
 	*clonevar yd_pc = yd_pc_before_mitigation 
 	*replace yd_pc = yd_pc+am_new_pnbsf_pc
@@ -234,21 +235,6 @@ foreach targeting in 0 1{
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 *export statistics
