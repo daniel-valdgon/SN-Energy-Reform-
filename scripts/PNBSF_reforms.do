@@ -1,6 +1,5 @@
-/*============================================================================================
+*============================================================================================
  ======================================================================================
-
 	Project:   VAT and Subsidies Tranche
 	Author:     Daniel 
 	Creation Date:  Dec 15, 2022
@@ -9,7 +8,6 @@
 	Note: *Update population using WDI data growth rates 2019-2022
 		   *Update disposable income by inflation 2019-2022 (conservative scenario) 
 			other option was private pc consumption
-
 			*Update Electricity consumption using real data on elec consumption 
 			*Keep quantities of fuel consumed at same levels until having a better estimate of growth rate
 ============================================================================================
@@ -23,7 +21,7 @@
 global namexls	"PNBSF_reform"
 
 import excel "$p_res/${namexls}.xlsx", sheet("PNBSF_deps") first clear cellrange(B4)
- 
+
 rename Nombredebénéficiares2018 Beneficiaires
 rename Montantdutransfertparan Montant
 
@@ -37,10 +35,10 @@ foreach z of local departement {
 	global PNBSF_Beneficiaires`z' `PNBSF_Beneficiaires`z''
 	levelsof Montant if departement==`z', local(PNBSF_montant`z')
 	global PNBSF_montant`z' `PNBSF_montant`z''
-	
+
 	*global PNBSF_Beneficiaires`z' = `PNBSF_Beneficiaires`z''*(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) // population growth 2019-2022
 	*global PNBSF_montant`z' = `PNBSF_montant`z''*(${inf_20})*(${inf_21})*(${inf_22}) // population growth 2019-2022
-  	
+
 }
 
 import excel "$p_res/${namexls}.xlsx", sheet("Other_params") first clear
@@ -52,7 +50,7 @@ foreach var of varlist _all{
 
 
 
-foreach targeting in 0 1 {
+foreach targeting in 0 1{
 
 
 	*===============================================================================
@@ -64,8 +62,8 @@ foreach targeting in 0 1 {
 	This database already contains the PMT variable, which I need in order to assign observations to the program.
 	*/
 
-	*local targeting 0
-	
+	local targeting 0
+
 	set seed 1234
 	use  "$presim/07_dir_trans_PMT.dta", replace // hh level dataset 1.7 mlln
 
@@ -81,13 +79,13 @@ foreach targeting in 0 1 {
 
 	gen new_beneficiaire_PNBSF=0
 	gen new_beneficiaire_PNBSF_menos=0
-	
+
 	levelsof departement, local(department)
 	foreach var of local department { 
 		replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'}*${PNBSF_benef_increase} & departement==`var'
 	} 
 
-	if `targeting' == 1 {
+	if `targeting' == 1{
 		levelsof departement, local(department)
 		foreach var of local department { 
 			replace new_beneficiaire_PNBSF=1 if count_PBSF_`var'<= ${PNBSF_Beneficiaires`var'}*${PNBSF_benef_increase} & departement==`var'
@@ -97,7 +95,7 @@ foreach targeting in 0 1 {
 		} 
 	}
 
-	if `targeting' == 0 {
+	if `targeting' == 0{
 		sort departement rannum
 		levelsof departement, local(department)
 		foreach var of local department { 
@@ -181,12 +179,12 @@ foreach targeting in 0 1 {
 
 
 	gen am_new_pnbsf = 0
-	replace am_new_pnbsf = ${PNBSF_transfer_increase}/hhsize if old_beneficiaire_PNBSF==1
-	replace am_new_pnbsf = (${PNBSF_transfer_increase}+100000)/hhsize if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
+	replace am_new_pnbsf = ${PNBSF_transfer_increase} if old_beneficiaire_PNBSF==1
+	replace am_new_pnbsf = ${PNBSF_transfer_increase}+100000 if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
 	*new disposable income:
 	*clonevar yd_pc = yd_pc_before_mitigation 
 	*replace yd_pc = yd_pc+am_new_pnbsf_pc
-	
+
 	*We need to redefine deciles based on the new disposable income
 	rename yd_deciles_pc old_yd_deciles_pc
 	sort yd_pc, stable 
@@ -197,7 +195,7 @@ foreach targeting in 0 1 {
 	drop gens
 	tab yd_deciles_pc [iw=pondih]
 	recode yd_deciles_pc (0=.)
-	
+
 
 	*Checking if everything makes sense
 	*1. Department statistics
@@ -229,10 +227,36 @@ foreach targeting in 0 1 {
 		tempfile sp_`targeting'
 		save `sp_`targeting'', replace 	
 	restore
+
+
+
+
+
+
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 *export statistics
+
+use `dep_stats_0', clear
+merge 1:1 departement using  `dep_stats_1'
+export excel "$p_res/${namexls}.xlsx", sheet(benefs_by_dep) first(variable) sheetreplace 
+
 
 
 use `deciles_0', clear
@@ -244,9 +268,4 @@ use `sp_0', clear
 append using  `sp_1'
 export excel "$p_res/${namexls}.xlsx", sheet(stats) first(variable) sheetreplace 
 
-
-
-use `dep_stats_0', clear
-merge 1:1 departement using `dep_stats_1'
-export excel "$p_res/${namexls}.xlsx", sheet(benefs_by_dep) first(variable) sheetreplace 
 
