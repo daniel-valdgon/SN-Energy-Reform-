@@ -31,17 +31,22 @@ foreach v in pondih hhweight {
 }
 
 
-/*Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
+/*
+Previous computations uprating all income sources by inflation 
+Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
 if $uprate_transfers == 1{
     foreach v in yd_pc zref {
 		replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 	}
-}*/
+}
+*/
 
 *If we fix transfers to 2018 prices and only uprate the net market income:
 foreach v in yn_pc zref {
 	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 }
+
+
 egen  double yd_pc2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
 replace yd_pc2=0 if yd_pc2==.
 replace yd_pc = yd_pc2
@@ -49,16 +54,9 @@ drop yd_pc2
 
 *We need new income deciles
 rename yd_deciles_pc old_yd_deciles_pc
-sort yd_pc, stable 
-gen gens = sum(pondih)
-sum gens
-replace gens = gens/r(max)
-gen yd_deciles_pc = ceil(gens*10)
-drop gens
-tab yd_deciles_pc [iw=pondih]
-recode yd_deciles_pc (0=.)
-
-
+set seed 8932
+_ebin yd_pc [aw=pondih], nq(10) gen(yd_deciles_pc) // Other option is quantiles but EPL use _ebin command 
+recode yd_deciles_pc (0=.) // one case which should not be missing 
 label var yd_pc "Baseline disposable income"
 
 tempfile output
@@ -263,23 +261,6 @@ exit
 
 
 /*Notes: exploring the cost push equivalences 
-
-
-mata: fixed = st_data (., "fixed") 
-mata: alfa = I(rows(fixed)) - diag(fixed)
-mata: A = st_data (., "C1-C35") 
-mata: dp = st_data (., "shock")
-
-
-mata: k   = luinv(I(rows(fixed)) - quadcross(alfa',A)) 
-
-mata: dptilda = quadcross(quadcross(dp,quadcross(alfa',A))',k)
-
-mata: s = quadcross(alfa',A)
-mata: dptilda2a = dp'A*k // 1XN NXN NXN would be equal to (A'dp)'=dp'A*k if later we transpose the result k'A'*dp
-
-mata: dptilda2b = k'A'dp // NXN NX1 NXN is missing the alpha final and that is the reason is wrong..
-*/
 
 
 
