@@ -65,6 +65,8 @@ foreach f of local files {
 	qui: cap run "$p_scr/_ado/`f'"
 }
 
+cap log close
+log using "$proj/docs/log_fullmodel.smcl", replace
 
 /*
 foreach adof in apoverty ftools gtools ereplace mdesc{
@@ -72,7 +74,7 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-global namexls	"simul_results_mitigation_PSIA_merged"
+global namexls	"simul_results_mitigation_MAIN"
 *global namexls	"simul_results_VAT"
 global numscenarios 1 2 3 4
 
@@ -159,6 +161,8 @@ include "$p_scr/3e_survey_totals.do" // include "$p_scr/2b_fuels_old.do"
 
 
 
+log close
+translate "$proj/docs/log_fullmodel.smcl" "$proj/docs/log_fullmodel.pdf",replace
 exit 
 
 
