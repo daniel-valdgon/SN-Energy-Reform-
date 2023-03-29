@@ -61,7 +61,8 @@ foreach var of varlist _all{
 *----------------1. Create main database as in 1b_updating
 *===============================================================================
 
-
+set seed 1234
+	
 
 use "$path_ceq/output.dta", clear 
 
@@ -101,13 +102,23 @@ merge m:1 departement using `deparments_dist', nogen
 	drop Beneficiaires_i
 
 
+
+
+	egen  double yd_pc_0 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc_0 am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
+
+apoverty yd_pc_0  [aw= pondih], varpl(zref)
+
+
+
 *===============================================================================
 *----------------2. New incomes as in 2c_mitigations
 *===============================================================================
 
 
 *1. Expansion of beneficiaries using PMT
-	gen _e1=abs(initial_ben-(Beneficiaires*${PNBSF_benef_increase}))
+	gen e=round(Beneficiaires*${PNBSF_benef_increase})
+	
+	gen _e1=abs(initial_ben-e)
 	bysort departement: egen _e=min(_e1)
 	gen _icum=initial_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
@@ -116,6 +127,16 @@ merge m:1 departement using `deparments_dist', nogen
 	drop _icum2_sd _icum _e _e1
 	gen am_BNSF_pc_1=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i
+
+
+	egen  double yd_pc_1 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc_1 am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
+
+apoverty yd_pc_1 [aw=pondih], varpl(zref)
+
+
+
+gen ben1=(am_BNSF_pc_1>0 )
+ta ben1 [iw=hhweight]
 
 
 *2. Expansion of beneficiaries using random
@@ -131,6 +152,17 @@ merge m:1 departement using `deparments_dist', nogen
 	drop _icum2_sd _icum _e _e1
 	gen am_BNSF_pc_2=(Montant/hhsize)*(rand_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i
+
+egen  double yd_pc_2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc_2 am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
+
+
+dis "GEO"
+apoverty yd_pc_2 [aw= pondih], varpl(zref)
+
+dis "PMT +GEO"
+apoverty yd_pc_1  [aw= pondih], varpl(zref)
+
+
 
 
 *3. Payment of delayed disbursements

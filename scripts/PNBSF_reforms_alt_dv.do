@@ -23,7 +23,10 @@
 global path "C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform"
 global path_ceq 	"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\data/raw"
 
-
+*******************************Validation of andres an I code ***********
+local onestep=1 // ==1 is to assing old and new beneficiaries in one step as ssugested by andres
+	//==0 is assign first old an later new beneficiaries 
+*******************************Validation of andres an I code ***********
 global namexls	"PNBSF_reform_Andres"
 import excel "$path/results/${namexls}.xlsx", sheet("PNBSF_deps") first clear cellrange(B4)
  
@@ -121,13 +124,69 @@ Uprating: Population growth, inflation, social programs
 	gen ben_0 = am_BNSF_pc_0>0 & am_BNSF_pc_0!=.
 	egen  double yd_pc_0 = rowtotal(yn_pc am_BNSF_pc_0 am_bourse_pc am_Cantine_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc)
 	
-	
+apoverty yd_pc_0  [aw= pondih], varpl(zref)
+
 	
 /*=======================================================
 		Assigning PNBSF policies 
 =========================================================*/
-	
+*NO SE PUEDE USAR EN UN SOLO STEP PMT  Y LUEGO RANDOM SIN HACER EL TRUCO DE ANDRES	
+	if `onestep'==1 {	
+		gen exp_benef=(Beneficiaires*${PNBSF_benef_increase})
+	}
+	if `onestep'==0 {	
 		gen exp_benef=round(Beneficiaires*(${PNBSF_benef_increase}-1))
+	}
+	
+	*Geographical + PMT (method 2)
+if `onestep'==0 {	
+		
+	bysort departement (PMT rannum): 	gen cum_t2= sum(hhweight) if ind_BNSF==0
+}
+if `onestep'==1 {	
+		
+	bysort departement (PMT rannum): 	gen cum_t2= sum(hhweight) 
+}
+		
+			//Assigning beneficiaries 
+			gen _e1=abs(cum_t2-exp_benef)
+			bysort departement: egen _e=min(_e1)
+			gen _icum=cum_t2 if _e==_e1
+			bysort departement: egen exp_benef_i2=total(_icum)
+			bysort departement: egen _icum2_sd=sd(_icum)
+			*assert _icum2_sd!=0
+			drop _icum2_sd _icum _e _e1
+		
+		gen am_BNSF_pc_2=(Montant/hhsize)*(cum_t2<=exp_benef_i2 ) //exp_benef 
+		
+
+		gen ben2=(am_BNSF_pc_2>0 | am_BNSF_pc_0>0 )
+		
+		if `onestep'==1 {	
+		egen  double yd_pc_2 = rowtotal(yn_pc am_BNSF_pc_2 am_bourse_pc am_Cantine_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc)
+		apoverty yd_pc_2 [aw= pondih], varpl(zref)
+		ta ben2 [iw=hhweight]
+
+		}
+
+		if `onestep'==0 {	
+		egen yd_pc_2= rowtotal(yd_pc_0 am_BNSF_pc_2)
+		
+		apoverty yd_pc_2 [aw= pondih], varpl(zref)
+		ta ben2 [iw=hhweight]
+		}
+
+
+exit 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	*Geographical (method 1)
 		bysort departement (rannum): 		gen cum_t1= sum(hhweight) if ind_BNSF==0
@@ -143,23 +202,10 @@ Uprating: Population growth, inflation, social programs
 			
 		gen am_BNSF_pc_1=(Montant/hhsize)*(cum_t1<=exp_benef_i1 ) //  
 		
-	*Geographical + PMT (method 2)
-		bysort departement (PMT rannum): 	gen cum_t2= sum(hhweight) if ind_BNSF==0
+	if `onestep'==1 {	
+		egen  double yd_pc_1 = rowtotal(yn_pc am_BNSF_pc_1 am_bourse_pc am_Cantine_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc)
+	}
 		
-			//Assigning beneficiaries 
-			gen _e1=abs(cum_t2-exp_benef)
-			bysort departement: egen _e=min(_e1)
-			gen _icum=cum_t2 if _e==_e1
-			bysort departement: egen exp_benef_i2=total(_icum)
-			bysort departement: egen _icum2_sd=sd(_icum)
-			*assert _icum2_sd!=0
-			drop _icum2_sd _icum _e _e1
-		
-		gen am_BNSF_pc_2=(Montant/hhsize)*(cum_t2<=exp_benef_i2 ) //exp_benef 
-
-
-egen yd_pc_1= rowtotal(yd_pc_0 am_BNSF_pc_1)
-egen yd_pc_2= rowtotal(yd_pc_0 am_BNSF_pc_2)
 
 
 apoverty yd_pc_0  [aw= pondih], varpl(zref)
