@@ -99,7 +99,6 @@ Uprating: Population growth, inflation, social programs
 	
 	*Storing original variables 
 	gen ben=am_BNSF_pc>0 & am_BNSF_pc!=.
-	
 	bysort departement (PMT rannum): gen initial_ben= sum(hhweight)
 	
 		//Assigning beneficiaries 
