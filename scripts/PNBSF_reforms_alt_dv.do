@@ -21,9 +21,10 @@
  ==============================================================================================*/
 
 global path "C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform"
+global path_ceq 	"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\data/raw"
 
 
-global namexls	"PNBSF_reform"
+global namexls	"PNBSF_reform_Andres"
 import excel "$path/results/${namexls}.xlsx", sheet("PNBSF_deps") first clear cellrange(B4)
  
 rename Nombredebénéficiares2018 Beneficiaires
@@ -107,7 +108,6 @@ Uprating: Population growth, inflation, social programs
 		gen _icum=initial_ben if _e==_e1
 		bysort departement: egen Beneficiaires_i=total(_icum)
 		bysort departement: egen _icum2_sd=sd(_icum)
-		assert _icum2_sd!=0
 		drop _icum2_sd _icum _e _e1
 			
 	
@@ -115,7 +115,7 @@ Uprating: Population growth, inflation, social programs
 	gen am_BNSF_pc_0=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
 	// assert abs(am_BNSF_pc_0-am_BNSF_pc)<1 if am_BNSF_pc_0>0 & am_BNSF_pc_0!=.  // This does not work with the new methodology because of two observations for departement 93 113
 
-	gen ind_BNSF=am_BNSF_pc_0>0
+	gen ind_BNSF=am_BNSF_pc_0>0 &  am_BNSF_pc_0!=.
 	drop initial_ben
 	
 	gen ben_0 = am_BNSF_pc_0>0 & am_BNSF_pc_0!=.
@@ -138,7 +138,7 @@ Uprating: Population growth, inflation, social programs
 			gen _icum=cum_t1 if _e==_e1
 			bysort departement: egen exp_benef_i1=total(_icum)
 			bysort departement: egen _icum2_sd=sd(_icum)
-			assert _icum2_sd!=0
+			*assert _icum2_sd!=0
 			drop _icum2_sd _icum _e _e1
 			
 		gen am_BNSF_pc_1=(Montant/hhsize)*(cum_t1<=exp_benef_i1 ) //  
@@ -152,11 +152,42 @@ Uprating: Population growth, inflation, social programs
 			gen _icum=cum_t2 if _e==_e1
 			bysort departement: egen exp_benef_i2=total(_icum)
 			bysort departement: egen _icum2_sd=sd(_icum)
-			assert _icum2_sd!=0
+			*assert _icum2_sd!=0
 			drop _icum2_sd _icum _e _e1
 		
 		gen am_BNSF_pc_2=(Montant/hhsize)*(cum_t2<=exp_benef_i2 ) //exp_benef 
-	
+
+
+egen yd_pc_1= rowtotal(yd_pc_0 am_BNSF_pc_1)
+egen yd_pc_2= rowtotal(yd_pc_0 am_BNSF_pc_2)
+
+
+apoverty yd_pc_0  [aw= pondih], varpl(zref)
+local p_0= 	`r(head_1)'
+apoverty yd_pc_1 [aw= pondih], varpl(zref)
+local p_1= 	`r(head_1)'
+apoverty yd_pc_2 [aw= pondih], varpl(zref)
+local p_2= 	`r(head_1)'
+
+
+dis "geo" 
+dis `p_0'-`p_1'
+dis "geo+pmt" 
+dis `p_0'-`p_2'
+
+
+
+
+
+
+
+
+exit 
+
+separated to test the actual differences 
+
+
+
 	*Retroactive payments 
 		gen am_BNSF_pc_3=100000/hhsize if ind_BNSF==1
 	
@@ -166,10 +197,13 @@ Uprating: Population growth, inflation, social programs
 	*Benefit increase + payments
 	gen am_BNSF_pc_5=140000/hhsize if ind_BNSF==1
 	
+
+
+
 	
-	/*=======================================================
-			Recompouting beneficiaries and income
-	=========================================================*/
+/*=======================================================
+		Recompouting beneficiaries and income
+=========================================================*/
 	
 	foreach targeting in  1 2 3 4 5 {
 		

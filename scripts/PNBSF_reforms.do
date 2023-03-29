@@ -18,8 +18,25 @@
 *----------------0. Geographical and uprating parameters 
  ==============================================================================================*/
 
+clear all
+macro drop _all 
+
+if "`c(username)'"=="WB419055" {
+	global path 		"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\results"
+	global p_res 		"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\results"
+	global path_ceq 	"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\data/raw"
+	global presim 		"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\data\raw\2_pre_sim"
+	global scripts 	"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\scripts"
+	
+	}
+else {
 global path "C:\Users\andre\Dropbox\Energy_Reform\results"
 global p_res "C:\Users\andre\Dropbox\Energy_Reform/SN-Energy-Reform-/results"
+}
+
+run "$scripts/_ado/_ebin.ado"
+
+
 
 global namexls	"PNBSF_reform_Andres"
  
@@ -76,6 +93,8 @@ merge m:1 departement using `deparments_dist', nogen
 	gen _icum=initial_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
 	bysort departement: egen _icum2_sd=sd(_icum)
+	
+	
 	assert _icum2_sd!=0
 	drop _icum2_sd _icum _e _e1
 	gen am_BNSF_pc_0=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
@@ -93,7 +112,7 @@ merge m:1 departement using `deparments_dist', nogen
 	gen _icum=initial_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
 	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
+	assert Beneficiaires_i==_icum if _icum!=.
 	drop _icum2_sd _icum _e _e1
 	gen am_BNSF_pc_1=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i
@@ -101,8 +120,8 @@ merge m:1 departement using `deparments_dist', nogen
 
 *2. Expansion of beneficiaries using random
 	gen PMT_trimmed = PMT
-	replace PMT_trimmed=100 if am_BNSF_pc_0==0 //The number does not matter, it just has to be large enough
-	bysort departement (PMT_trimmed rannum): gen rand_ben= sum(hhweight)
+	replace PMT_trimmed=100 if am_BNSF_pc_0==0 //The number does not matter, it just has to be large enough 
+	bysort departement (PMT_trimmed rannum): gen rand_ben= sum(hhweight) 
 	gen _e1=abs(rand_ben-(Beneficiaires*${PNBSF_benef_increase}))
 	bysort departement: egen _e=min(_e1)
 	gen _icum=rand_ben if _e==_e1
@@ -126,7 +145,7 @@ merge m:1 departement using `deparments_dist', nogen
 	drop Beneficiaires_i
 
 
-*4. Increase in benefits from 100K to 140K
+*4. Increase in benefits from 100K to 140K  (Not need to assign again beneficiaries to risky/costly  to have twice the same procedure if not needed 
 	gen _e1=abs(initial_ben-Beneficiaires)
 	bysort departement: egen _e=min(_e1)
 	gen _icum=initial_ben if _e==_e1
