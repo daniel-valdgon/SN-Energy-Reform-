@@ -32,6 +32,7 @@ if "`c(username)'"=="WB419055" {
 	global path_raw "$proj/data/raw"
 	global path_ceq "$proj/data/raw"
 	global p_scr 	"$proj/scripts"
+	global p_res	"$proj/results"
 } 
 
 if "`c(username)'"=="andre" {
@@ -43,10 +44,12 @@ if "`c(username)'"=="andre" {
 	global path_raw "$proj/data/raw"
 	global path_ceq "$proj/data/raw"
 	global p_scr 	"$proj/SN-Energy-Reform-/scripts"
+	*global p_res	"$proj/results"
+	global p_res	"$proj/SN-Energy-Reform-/results"
+	
 } 
 
 
-global p_res	"$proj/results"
 global p_o 		"$proj/data/output"
 global p_pre 	"$proj/pre_analysis"
 global presim	"$proj/data/raw/2_pre_sim"
@@ -62,6 +65,8 @@ foreach f of local files {
 	qui: cap run "$p_scr/_ado/`f'"
 }
 
+cap log close
+log using "$proj/docs/log_fullmodel.smcl", replace
 
 /*
 foreach adof in apoverty ftools gtools ereplace mdesc{
@@ -69,7 +74,7 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-global namexls	"simul_results_mitigation_PSIA"
+global namexls	"simul_results_mitigation_MAIN"
 *global namexls	"simul_results_VAT"
 global numscenarios 1 2 3 4
 
@@ -156,6 +161,8 @@ include "$p_scr/3e_survey_totals.do" // include "$p_scr/2b_fuels_old.do"
 
 
 
+log close
+translate "$proj/docs/log_fullmodel.smcl" "$proj/docs/log_fullmodel.pdf",replace
 exit 
 
 

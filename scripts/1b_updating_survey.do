@@ -22,7 +22,7 @@
 use "$path_ceq/output.dta", clear 
 
 *Updating 
-keep  hhid yd_deciles_pc yd_pc yn_pc hhsize pondih all zref hhweight am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc
+keep  hhid yd_deciles_pc yd_pc yn_pc hhsize pondih all zref hhweight am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc 
 
 *Updating population
 clonevar  hhweight_orig=hhweight
@@ -31,23 +31,53 @@ foreach v in pondih hhweight {
 }
 
 
-/*
-Previous computations uprating all income sources by inflation 
-Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
-if $uprate_transfers == 1{
-    foreach v in yd_pc zref {
-		replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
-	}
+
+/*Previous computations uprating all income sources by inflation 
+*Updating disposable income by inflation only (does not necesarily match growth in elec consumption) 
+foreach v in yd_pc zref {
+	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 }
 */
 
-*If we fix transfers to 2018 prices and only uprate the net market income:
-foreach v in yn_pc zref {
+
+*If we fix PNSF transfers to 2018 prices and uprate the net market income and the other transfers:
+foreach v in yn_pc zref am_bourse_pc am_Cantine_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc {
 	replace `v'=`v'*(${inf_20})*(${inf_21})*(${inf_22}) // inflation 2019-2022
 }
 
+*Include PMT data to exclude extra-households that should not be
+merge 1:1 hhid using "$presim/07_dir_trans_PMT.dta", keepusing(PMT pmt_seed departement) nogen
+rename pmt_seed rannum
 
-egen  double yd_pc2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
+preserve
+	*global namexls	"PNBSF_reform"
+	import excel "$p_res/${namexls}.xlsx", sheet("PNBSF_deps") first clear cellrange(B4)
+	rename Nombredebénéficiares2018 Beneficiaires
+	rename Montantdutransfertparan Montant
+	drop if departement==. | RegionDepartement==" General"
+	egen _tot=total (Beneficiaires)
+	gen double share=Beneficiaires/_tot
+	keep departement share Beneficiaires Montant
+	tempfile deparments_dist
+	save `deparments_dist', replace 
+restore
+
+merge m:1 departement using `deparments_dist', nogen
+
+*Assigning PNBSF beneficiaries (approx. 300,000) using the "closest weight" algorithm
+bysort departement (PMT rannum): gen initial_ben= sum(hhweight)
+gen _e1=abs(initial_ben-Beneficiaires)
+bysort departement: egen _e=min(_e1)
+gen _icum=initial_ben if _e==_e1
+bysort departement: egen Beneficiaires_i=total(_icum)
+bysort departement: egen _icum2_sd=sd(_icum)
+assert _icum2_sd!=0
+drop _icum2_sd _icum _e _e1
+gen am_BNSF_pc_0=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
+drop Beneficiaires_i
+
+
+egen  double yd_pc2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc_0 am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
 replace yd_pc2=0 if yd_pc2==.
 replace yd_pc = yd_pc2
 drop yd_pc2

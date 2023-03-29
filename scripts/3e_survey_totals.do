@@ -62,7 +62,7 @@ gen increase = tariff_reform_pkwh-tariff_baseline_pkwh
 bys type_client:sum increase [aw=pondih]
 
 gen lnincrease=ln(increase)
-kdensity lnincrease, xlabel(0 "1" .6931 "2" 1.609 "5" 2.303 "10" 2.9428 "18.97" /*2.996 "20"*/ 3.912 "50" 4.605 "100" 5.298 "200" 6.214 "500" 6.907 "1000" 7.6009025 "2000" 8.517 "5000") xline(2.9428) 
+*kdensity lnincrease, xlabel(0 "1" .6931 "2" 1.609 "5" 2.303 "10" 2.9428 "18.97" /*2.996 "20"*/ 3.912 "50" 4.605 "100" 5.298 "200" 6.214 "500" 6.907 "1000" 7.6009025 "2000" 8.517 "5000") xline(2.9428) 
 
 *The reported value in the reform seems to make sense. Now, as a percentage:
 
@@ -71,10 +71,10 @@ gen increase_pcnt = (tariff_reform_pkwh-tariff_baseline_pkwh)/tariff_baseline_pk
 bys type_client:sum increase_pcnt [aw=pondih]
 
 gen lnincrease_pcnt = ln(increase_pcnt+sqrt(increase_pcnt^2+1))
-histogram increase_pcnt [fw=round(pondih)] if increase_pcnt>=0 & increase_pcnt<=1
+*histogram increase_pcnt [fw=round(pondih)] if increase_pcnt>=0 & increase_pcnt<=1
 
 
-br if increase_pcnt>1
+*br if increase_pcnt>1
 
 
 

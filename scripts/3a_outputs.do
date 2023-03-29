@@ -22,23 +22,6 @@ merge 1:1 hhid using `elec_tmp_dta', nogen
 
 *Mitigation measure: new PNBSF policy
 merge 1:1 hhid using `new_PNBSF', nogen
-gen old_beneficiaire_PNBSF = (am_BNSF_pc>0)
-count if old_beneficiaire_PNBSF==1										//Every previous beneficiary...
-local old=r(N)
-count if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==1			//...should continue being one
-local new=r(N)
-assert `old'==`new'
-
-count if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==0
-dis "There are " r(N) " new beneficiaries of the PNBSF program"
-
-gen am_new_pnbsf = 0
-replace am_new_pnbsf = ${PNBSF_transfer_increase} if old_beneficiaire_PNBSF==1
-replace am_new_pnbsf = ${PNBSF_transfer_increase}+100000 if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
-*new disposable income:
-*clonevar yd_pc = yd_pc_before_mitigation 
-*replace yd_pc = yd_pc+am_new_pnbsf_pc
-
 
 
 *Adding policies
