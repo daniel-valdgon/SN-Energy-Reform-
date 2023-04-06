@@ -14,10 +14,6 @@
 ============================================================================================*/
 
 
-/*===============================================================================================
-*----------------0. Geographical and uprating parameters 
- ==============================================================================================*/
-
 clear all
 macro drop _all 
 
@@ -26,19 +22,30 @@ if "`c(username)'"=="WB419055" {
 	global p_res 		"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\results"
 	global path_ceq 	"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\data/raw"
 	global presim 		"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\data\raw\2_pre_sim"
-	global scripts 	"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\scripts"
+	global scripts 		"C:\Users\WB419055\OneDrive - WBG\SenSim Tool\JTR\Energy_reform\scripts"
 	
 	}
 else {
-global path "C:\Users\andre\Dropbox\Energy_Reform\results"
-global p_res "C:\Users\andre\Dropbox\Energy_Reform/SN-Energy-Reform-/results"
+	global path 		"C:\Users\andre\Dropbox\Energy_Reform\results"
+	global p_res 		"C:\Users\andre\Dropbox\Energy_Reform/SN-Energy-Reform-/results"
+	global path_ceq 	"C:\Users\andre\Dropbox\Energy_Reform/data/raw"
+	global presim 		"C:\Users\andre\Dropbox\Energy_Reform/data\raw\2_pre_sim"
+	global scripts 		"C:\Users\andre\Dropbox\Energy_Reform/SN-Energy-Reform-/scripts"
+	global p_scr 		"C:\Users\andre\Dropbox\Energy_Reform/SN-Energy-Reform-/scripts"
 }
 
-run "$scripts/_ado/_ebin.ado"
+local files : dir "$p_scr/_ado" files "*.ado"
+foreach f of local files {
+	display("`f'")
+	qui: cap run "$p_scr/_ado/`f'"
+}
 
 
+/*===============================================================================================
+*----------------0. Geographical and uprating parameters 
+ ==============================================================================================*/
 
-global namexls	"PNBSF_reform_Andres"
+global namexls	"PNBSF_reform"
  
 *Let's import the department parameters as a database, to do the same thing as with the main tool
 import excel "$p_res/${namexls}.xlsx", sheet("PNBSF_deps") first clear cellrange(B4)
@@ -61,8 +68,7 @@ foreach var of varlist _all{
 *----------------1. Create main database as in 1b_updating
 *===============================================================================
 
-set seed 1234
-	
+
 
 use "$path_ceq/output.dta", clear 
 
@@ -89,154 +95,85 @@ merge m:1 departement using `deparments_dist', nogen
 *Assigning PNBSF beneficiaries (approx. 300,551) using the "closest weight" algorithm
 *0. Baseline
 	bysort departement (PMT rannum): gen initial_ben= sum(hhweight)
-	gen _e1=abs(initial_ben-Beneficiaires)
+	gen _e1=abs(initial_ben-round(Beneficiaires))
 	bysort departement: egen _e=min(_e1)
 	gen _icum=initial_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
 	bysort departement: egen _icum2_sd=sd(_icum)
-	
-	
-	assert _icum2_sd!=0
+	assert _icum2_sd==. //As it's constant within dept, sd should be missing.
+	sum _icum
+	assert r(N)==46 //45 departments, and the weird observation with no information
 	drop _icum2_sd _icum _e _e1
 	gen am_BNSF_pc_0=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i
 
-
-
-
-	egen  double yd_pc_0 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc_0 am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
-
-apoverty yd_pc_0  [aw= pondih], varpl(zref)
-
-
-
+	
 *===============================================================================
 *----------------2. New incomes as in 2c_mitigations
 *===============================================================================
 
 
 *1. Expansion of beneficiaries using PMT
-	gen e=round(Beneficiaires*${PNBSF_benef_increase})
-	
-	gen _e1=abs(initial_ben-e)
+	gen _e1=abs(initial_ben-round(Beneficiaires*${PNBSF_benef_increase}))
 	bysort departement: egen _e=min(_e1)
 	gen _icum=initial_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
 	bysort departement: egen _icum2_sd=sd(_icum)
-	assert Beneficiaires_i==_icum if _icum!=.
+	assert _icum2_sd==. //As it's constant within dept, sd should be missing.
+	sum _icum
+	assert r(N)==46 //45 departments, and the weird observation with no information
 	drop _icum2_sd _icum _e _e1
 	gen am_BNSF_pc_1=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i
 
 
-	egen  double yd_pc_1 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc_1 am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
-
-apoverty yd_pc_1 [aw=pondih], varpl(zref)
-
-
-
-gen ben1=(am_BNSF_pc_1>0 )
-ta ben1 [iw=hhweight]
-
-
 *2. Expansion of beneficiaries using random
 	gen PMT_trimmed = PMT
-	replace PMT_trimmed=100 if am_BNSF_pc_0==0 //The number does not matter, it just has to be large enough 
-	bysort departement (PMT_trimmed rannum): gen rand_ben= sum(hhweight) 
-	gen _e1=abs(rand_ben-(Beneficiaires*${PNBSF_benef_increase}))
+	replace PMT_trimmed=100 if am_BNSF_pc_0==0 //The number does not matter, it just has to be large enough
+	bysort departement (PMT_trimmed rannum): gen rand_ben= sum(hhweight)
+	gen _e1=abs(rand_ben-round(Beneficiaires*${PNBSF_benef_increase}))
 	bysort departement: egen _e=min(_e1)
 	gen _icum=rand_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
 	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
+	assert _icum2_sd==. //As it's constant within dept, sd should be missing.
+	sum _icum
+	assert r(N)==46 //45 departments, and the weird observation with no information
 	drop _icum2_sd _icum _e _e1
 	gen am_BNSF_pc_2=(Montant/hhsize)*(rand_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i
 
-egen  double yd_pc_2 = rowtotal(yn_pc am_bourse_pc am_Cantine_pc am_BNSF_pc_2 am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc) 
-
-
-dis "GEO"
-apoverty yd_pc_2 [aw= pondih], varpl(zref)
-
-dis "PMT +GEO"
-apoverty yd_pc_1  [aw= pondih], varpl(zref)
-
-
-
 
 *3. Payment of delayed disbursements
-	gen _e1=abs(initial_ben-Beneficiaires)
-	bysort departement: egen _e=min(_e1)
-	gen _icum=initial_ben if _e==_e1
-	bysort departement: egen Beneficiaires_i=total(_icum)
-	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
-	drop _icum2_sd _icum _e _e1
-	gen am_BNSF_pc_3=((2*Montant)/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
-	drop Beneficiaires_i
+	gen am_BNSF_pc_3=am_BNSF_pc_0
+	replace am_BNSF_pc_3=am_BNSF_pc_3+(Montant/hhsize) if am_BNSF_pc_3>0
 
 
-*4. Increase in benefits from 100K to 140K  (Not need to assign again beneficiaries to risky/costly  to have twice the same procedure if not needed 
-	gen _e1=abs(initial_ben-Beneficiaires)
-	bysort departement: egen _e=min(_e1)
-	gen _icum=initial_ben if _e==_e1
-	bysort departement: egen Beneficiaires_i=total(_icum)
-	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
-	drop _icum2_sd _icum _e _e1
-	gen am_BNSF_pc_4=((Montant+${PNBSF_transfer_increase})/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
-	drop Beneficiaires_i
+*4. Increase in benefits from 100K to 140K
+	gen am_BNSF_pc_4=am_BNSF_pc_0
+	replace am_BNSF_pc_4=am_BNSF_pc_4+(${PNBSF_transfer_increase}/hhsize) if am_BNSF_pc_4>0
 
 
 *5. Expansion of beneficiaries using PMT & transfer increase
-	gen _e1=abs(initial_ben-(Beneficiaires*${PNBSF_benef_increase}))
-	bysort departement: egen _e=min(_e1)
-	gen _icum=initial_ben if _e==_e1
-	bysort departement: egen Beneficiaires_i=total(_icum)
-	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
-	drop _icum2_sd _icum _e _e1
-	gen am_BNSF_pc_5=((Montant+${PNBSF_transfer_increase})/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
-	drop Beneficiaires_i
+	gen am_BNSF_pc_5=am_BNSF_pc_1
+	replace am_BNSF_pc_5=am_BNSF_pc_5+(${PNBSF_transfer_increase}/hhsize) if am_BNSF_pc_5>0
 
 
 *6. Expansion of beneficiaries using random & transfer increase
-	gen _e1=abs(rand_ben-(Beneficiaires*${PNBSF_benef_increase}))
-	bysort departement: egen _e=min(_e1)
-	gen _icum=rand_ben if _e==_e1
-	bysort departement: egen Beneficiaires_i=total(_icum)
-	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
-	drop _icum2_sd _icum _e _e1
-	gen am_BNSF_pc_6=((Montant+${PNBSF_transfer_increase})/hhsize)*(rand_ben<=Beneficiaires_i) // Beneficiaires 
-	drop Beneficiaires_i
+	gen am_BNSF_pc_6=am_BNSF_pc_2
+	replace am_BNSF_pc_6=am_BNSF_pc_6+(${PNBSF_transfer_increase}/hhsize) if am_BNSF_pc_6>0
 
 
 *7. Expansion of beneficiaries using PMT & transfer increase & delayed disbursements
-	gen _e1=abs(initial_ben-(Beneficiaires*${PNBSF_benef_increase}))
-	bysort departement: egen _e=min(_e1)
-	gen _icum=initial_ben if _e==_e1
-	bysort departement: egen Beneficiaires_i=total(_icum)
-	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
-	drop _icum2_sd _icum _e _e1
-	gen am_BNSF_pc_7=((Montant+${PNBSF_transfer_increase})/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
-	replace am_BNSF_pc_7=am_BNSF_pc_7+(Montant/hhsize) if am_BNSF_pc_0!=0
-	drop Beneficiaires_i
+	gen am_BNSF_pc_7=am_BNSF_pc_1
+	replace am_BNSF_pc_7=am_BNSF_pc_7+(${PNBSF_transfer_increase}/hhsize) if am_BNSF_pc_7>0
+	replace am_BNSF_pc_7=am_BNSF_pc_7+(Montant/hhsize) if am_BNSF_pc_0>0
 
 
 *8. Expansion of beneficiaries using random & transfer increase & delayed disbursements
-	gen _e1=abs(rand_ben-(Beneficiaires*${PNBSF_benef_increase}))
-	bysort departement: egen _e=min(_e1)
-	gen _icum=rand_ben if _e==_e1
-	bysort departement: egen Beneficiaires_i=total(_icum)
-	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
-	drop _icum2_sd _icum _e _e1
-	gen am_BNSF_pc_8=((Montant+${PNBSF_transfer_increase})/hhsize)*(rand_ben<=Beneficiaires_i) // Beneficiaires 
-	replace am_BNSF_pc_8=am_BNSF_pc_8+(Montant/hhsize) if am_BNSF_pc_0!=0
-	drop Beneficiaires_i
+	gen am_BNSF_pc_8=am_BNSF_pc_2
+	replace am_BNSF_pc_8=am_BNSF_pc_8+(${PNBSF_transfer_increase}/hhsize) if am_BNSF_pc_8>0
+	replace am_BNSF_pc_8=am_BNSF_pc_8+(Montant/hhsize) if am_BNSF_pc_0>0
 
 
 
@@ -260,6 +197,8 @@ label var yd_pc_6 "Baseline + Random + Increase"
 label var yd_pc_7 "Baseline + PMT + Increase + Delayed"
 label var yd_pc_8 "Baseline + Random + Increase + Delayed"
 
+save "$path/PNBSF_scenarios.dta", replace 
+
 *===============================================================================
 *----------------3. Outputs
 *===============================================================================
@@ -271,7 +210,7 @@ label var yd_pc_8 "Baseline + Random + Increase + Delayed"
 			replace am_BNSF_pc_`i'=. if am_BNSF_pc_`i'==0
 		}
 		
-		collapse (sum) benefs_* am_BNSF_pc_* [iw=hhweight], by(departement)
+		collapse (sum) benefs_* (mean) am_BNSF_pc_* [iw=hhweight], by(departement)
 		export excel "$p_res/${namexls}.xlsx", sheet(benefs_by_dep) first(variable) sheetreplace
 	restore
 
@@ -297,4 +236,19 @@ label var yd_pc_8 "Baseline + Random + Increase + Delayed"
 
 
 
+
+use "$path/PNBSF_scenarios.dta", clear
+
+apoverty yd_pc_0  [aw= pondih], varpl(zref)
+local p_0= 	`r(head_1)'
+apoverty yd_pc_1 [aw= pondih], varpl(zref)
+local p_1= 	`r(head_1)'
+apoverty yd_pc_2 [aw= pondih], varpl(zref)
+local p_2= 	`r(head_1)'
+
+
+dis "geo" 
+dis `p_0'-`p_1'
+dis "geo+pmt" 
+dis `p_0'-`p_2'
 

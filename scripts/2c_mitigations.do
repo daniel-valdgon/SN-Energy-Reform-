@@ -11,7 +11,7 @@ if $PMT_targeting_BSF == 1{
 	gen _icum=initial_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
 	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
+	assert _icum2_sd==. //As it's constant within dept, sd should be missing.
 	drop _icum2_sd _icum _e _e1
 	gen new_am_BNSF_pc_0=((Montant+${PNBSF_transfer_increase})/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i
@@ -27,7 +27,7 @@ if $PMT_targeting_BSF == 0{
 	gen _icum=new_ben if _e==_e1
 	bysort departement: egen Beneficiaires_i=total(_icum)
 	bysort departement: egen _icum2_sd=sd(_icum)
-	assert _icum2_sd!=0
+	assert _icum2_sd==. //As it's constant within dept, sd should be missing.
 	drop _icum2_sd _icum _e _e1
 	gen new_am_BNSF_pc_0=((Montant+${PNBSF_transfer_increase})/hhsize)*(new_ben<=Beneficiaires_i) // Beneficiaires 
 	drop Beneficiaires_i

@@ -83,12 +83,13 @@ drop pondih
 
 
 
-use "$enquete\ehcvm_conso_sen2018.dta", clear
-unique grappe menage vague codpr modep
 
 use "$data_sn/Senegal_consumption_all_by_product.dta", clear
 unique grappe menage vague codpr modep
 rename depan depan_old
+cap gen hhid = grappe*1000+menage
+*rename menage menage_old																// Si comento estas dos líneas
+*merge m:1 hhid using "$data_sn/CORR_HHID_MENAGES.dta", nogen							// obtengo la gráfica vieja sin corregir por hhid
 merge m:1 grappe menage vague codpr modep using "$enquete\ehcvm_conso_sen2018.dta"
 
 sort grappe menage vague codpr modep
@@ -97,10 +98,37 @@ br if _merge!=3
 gen ld_new = ln(depan)
 gen ld_old = ln(depan_old)
 
-scatter ld_*, msize(vtiny)
+scatter ld_*, msize(vtiny) aspectratio(1) xtitle("Old ln(spending)") ytitle("New ln(spending)")
+
+*scatter ld_* if round(depan,1000)!=round(depan_old,1000), msize(vtiny)
+
+gen igual = ( abs(depan-depan_old)<0.5 )
+gen dif = depan-depan_old
+gen ldif=ln(abs(dif))*sign(dif)
+tab codpr igual if _merge==3, mis
+tab codpr _merge, mis
+tab _merge igual, mis
+
+*scatter ld_new ldif, msize(vtiny)
+*twoway (scatter ld_old ldif, msize(vtiny)) (scatter ld_new ldif, msize(vtiny)), legend(off)
+
+br if codpr==33 & igual!=1
+
+collapse depan*, by(hhid)
+gen ld_new = ln(depan)
+gen ld_old = ln(depan_old)
+scatter ld_*, msize(vtiny)  xtitle("Old ln(spending)") ytitle("New ln(spending)") aspectratio(1)
 
 
 
+
+
+
+
+
+
+
+gen depan_dif = depan_old -depan
 
 
 
@@ -121,9 +149,21 @@ tempfile conso
 save `conso', replace 
 
 	use "$path_ceq/2_pre_sim/05_purchases_hhid_codpr.dta", clear
+	merge m:1 hhid using "$data_sn/CORR_HHID_MENAGES.dta", nogen
+	rename hhid hhid_old
+	rename hhid_new hhid
 	merge 1:1 hhid codpr using `conso'
+	
+	gen ld_new = ln(depan_new)
+	gen ld_old = ln(depan)
+
+	scatter ld_*, msize(vtiny)
 
 
+	
+	
+	
+	
 use "$path_ceq/2_pre_sim/05_purchases_hhid_codpr.dta", clear
 rename depan depan_05
 merge m:1 hhid using "$path_ceq/output.dta", keepusing(dtot hhweight hhsize vague grappe menage dtet depan) nogen

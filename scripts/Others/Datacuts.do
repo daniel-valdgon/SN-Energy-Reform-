@@ -1,6 +1,6 @@
 
 clear all
-macro drop all
+*macro drop all
 set more off, perm
 
 // Note that scripts folder and project folder can be separated from each other. This gives flexibility for collaborators not needing to share datasets but only code
@@ -18,16 +18,12 @@ if "`c(username)'"=="andre" {
 global p_o 		"$proj/data/output"
 global p_pre 	"$proj/pre_analysis"
 global presim	"$proj/data/raw/2_pre_sim"
-
-
-use "$path_ceq/output.dta", clear 
-
 global data_sn "C:\Users\andre\Dropbox\Energy_Reform\data\raw"
 
 
 use "C:\Users\andre\Dropbox\Energy_Reform\data\raw\s01_me_SEN2018.dta", clear
 assert hhid == grappe*1000+menage
-merge m:1 hhid using "$path_ceq/output.dta" , keepusing(yc_pc zref pondih poor_ref)
+merge m:1 hhid using "$path_ceq/output.dta" , keepusing(yc_pc yd_pc zref pondih poor_ref hhweight)
 
 merge 1:1 interview__key interview__id id_menage grappe vague s01q00a using "$data_sn/s02_me_SEN2018.dta", gen(merged2)
 merge 1:1 interview__key interview__id id_menage grappe vague s01q00a using "$data_sn/s04_me_SEN2018.dta", gen(merged4)
@@ -42,14 +38,23 @@ gen age=2018-s01q03c if vague==1
 replace age=2019-s01q03c if vague==2
 replace age= s01q04a if age==.
 
+*Correct poverty definition
+*hist lyd [fw=hhweight], xline(12.717) fc(blue%50)
+cap drop poor_ref
+gen poor_ref = (yd_pc<zref)
+
 *We want two profiles:
+
+gen profile0=(age>=15 & age<=24)
 
 *15-24 YO woman, rural, poor
 gen profile1=(s01q01==2 & age>=15 & age<=24 & s00q04==2 & poor_ref==1)
 
-
 *15-24 YO man, urban
 gen profile2=(s01q01==1 & age>=15 & age<=24 & s00q04==1)
+
+*More profiles will be defined below
+
 
 
 *Education
@@ -114,11 +119,11 @@ gen profile2=(s01q01==1 & age>=15 & age<=24 & s00q04==1)
 
 
 *savings
-	sum s06q01__1 s06q01__2 s06q01__3 s06q01__4 s06q01__5 if profile1==1
+	sum s06q01__1 s06q01__2 s06q01__3 s06q01__4 s06q01__5 if profile1==1 |  profile2==1
 	gen credit = (s06q05==1)
 	
 	
-*bourse familiale
+/*bourse familiale
 *registre
 *edu
 	**** Identify students by level
@@ -189,7 +194,7 @@ gen profile2=(s01q01==1 & age>=15 & age<=24 & s00q04==1)
 	replace ed_level= 3 if ben_secondary==1
 	replace ed_level= 4 if ben_tertiary==1
 
-	label define educlevel 1 "Pre-school" 2 "Primary" 3 "Secondary" 4 "Terciary"
+	label define educlevel 1 "Pre-school" 2 "Primary" 3 "Secondary" 4 "Tertiary"
 
 	gen ed_level_pri = . 
 	replace ed_level_pri= 1 if ben_pre_school_pri==1
@@ -198,15 +203,81 @@ gen profile2=(s01q01==1 & age>=15 & age<=24 & s00q04==1)
 	replace ed_level_pri= 4 if ben_tertiary_pri==1
 	
 	
-	
+	sum am_bourse am_Cantine am_BNSF am_subCMU am_sesame am_moin5 am_cesarienne
 	
 *health
 *agropoles
 *pole emploi
 *employment services 
 *etc…
+*/
+/*
+use "$presim/Direct_transfers_individ.dta", clear
+	rename beneficiaire_bourse ben_bourse
+	rename beneficiaire_Cantine ben_Cantine
+	rename beneficiaire_PNBSF ben_BNSF
+	rename ben_CMUh ben_subCMU
+	rename ben_moins5 ben_moin5
+	foreach var in _bourse _Cantine _BNSF _subCMU _sesame _moin5 _cesarienne {
+		sum am`var' if am`var'!=0
+		sum am`var' if ben`var'==1 
+	}
+*/
+
+merge 1:1 interview__key interview__id grappe vague id_menage s01q00a using "$presim/Direct_transfers_individ.dta", keepusing(beneficiaire_bourse beneficiaire_Cantine beneficiaire_PNBSF ben_CMUh ben_moins5 ben_sesame ben_cesarienne) gen(merged_secsoc)
+
+rename beneficiaire_bourse ben_bourse
+rename beneficiaire_Cantine ben_Cantine
+rename beneficiaire_PNBSF ben_BNSF
+rename ben_CMUh ben_subCMU
+rename ben_moins5 ben_moin5
 
 
+
+*Now, those in PNBSF
+gen profile3=(age>=15 & age<=24 & ben_BNSF==1)
+
+*15-24 YO woman, rural, poor
+gen profile4=(s01q01==2 & age>=15 & age<=24 & s00q04==2 & poor_ref==1 & ben_BNSF==1)
+
+*15-24 YO man, urban
+gen profile5=(s01q01==1 & age>=15 & age<=24 & s00q04==1 & ben_BNSF==1)
+
+gen total=1
+
+foreach var in working single married_m married_p u_libre widow divorced separated acte_naissance s06q01__1 s06q01__2 s06q01__3 s06q01__4 s06q01__5 credit ben_bourse ben_Cantine ben_BNSF ben_subCMU ben_moin5 ben_sesame ben_cesarienne total{
+    forval prof = 0/5{
+	    qui sum `var' [iw=hhweight] if profile`prof'==1 & `var'==1
+		local cant`prof' = r(sum_w)
+	}
+	dis "`cant0' `cant1' `cant2' `cant3' `cant4' `cant5'"
+}
+
+
+
+forval prof = 0/5{
+	sum yearsedu impa impaes s05q02 s05q04 s05q06 s05q08 s05q10 s05q12 s05q14 [iw=hhweight] if profile`prof'==1
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 use "C:\Users\andre\Dropbox\Energy_Reform\data\raw\1_raw\s15_me_sen2018.dta" , clear
 merge m:1 grappe menage using "C:\Users\andre\Dropbox\Energy_Reform\data\raw\1_raw\ehcvm_welfare_sen2018.dta" , keepusing(hhweight hhsize)
 
@@ -216,7 +287,6 @@ tab s15q01
 
 
 
-foreach var in working single married_m married_p u_libre widow divorced separated acte_naissance s06q01__1 s06q01__2 s06q01__3 s06q01__4 s06q01__5 credit
 
 
 

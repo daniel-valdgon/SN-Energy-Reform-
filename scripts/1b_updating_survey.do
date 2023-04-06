@@ -84,6 +84,7 @@ drop yd_pc2
 
 *We need new income deciles
 rename yd_deciles_pc old_yd_deciles_pc
+rename am_BNSF_pc old_am_BNSF_pc
 set seed 8932
 _ebin yd_pc [aw=pondih], nq(10) gen(yd_deciles_pc) // Other option is quantiles but EPL use _ebin command 
 recode yd_deciles_pc (0=.) // one case which should not be missing 
