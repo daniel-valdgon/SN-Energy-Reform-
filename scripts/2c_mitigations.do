@@ -53,7 +53,13 @@ dis "There are " `newben' " new beneficiaries of the PNBSF program"
 *The information that I need to send to the output is only the increase in the transfer, not in pc terms because that will be calculated there along with the other policies
 gen am_new_pnbsf=(new_am_BNSF_pc_0-am_BNSF_pc_0)*hhsize
 
-keep hhid am_new_pnbsf
+gen am_delayed_pnbsf = 0
+if ${delayed_PNBSF} == 1 {
+	replace am_delayed_pnbsf = 100000 if old_beneficiaire_PNBSF==1
+}
+
+
+keep hhid am_new_pnbsf am_delayed_pnbsf
 
 tempfile new_PNBSF
 save `new_PNBSF', replace 

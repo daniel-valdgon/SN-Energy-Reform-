@@ -6,8 +6,8 @@ run "$p_scr/_ado/costpush.ado"
 local income yd   	// before I have a local here but it presented some problems 
 local ind_transf 	subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec 
 local ind_tax 		vat_elec vat_fuel
-local ind_miti		am_new_pnbsf
-local all_groups 	all_policies_miti all_policies all_tax all_subs all_elec all_fuel
+local ind_miti		am_new_pnbsf am_delayed_pnbsf social_tranche subs_public_transport
+local all_groups 	all_miti all_miti_noST all_policies_miti all_policies_noST all_policies all_tax all_subs_noST all_subs all_elec_noST all_elec all_fuel
 
 local policies `ind_transf' `ind_tax' `ind_miti' `all_groups'
 local pline zref // line_19 line_32 line_55
@@ -26,11 +26,16 @@ merge 1:1 hhid using `new_PNBSF', nogen
 
 *Adding policies
 egen all_subs			=rowtotal(subsidy_fuel subsidy_elec)
+gen all_subs_noST		=subsidy_fuel+subsidy_elec-social_tranche
 egen all_tax			=rowtotal(vat_elec vat_fuel)
 gen all_elec			=subsidy_elec-vat_elec
+gen all_elec_noST		=subsidy_elec-vat_elec-social_tranche
 gen all_fuel			=subsidy_fuel-vat_fuel
 gen all_policies		=all_subs-all_tax
-gen all_policies_miti	=all_subs-all_tax+am_new_pnbsf
+gen all_policies_noST	=all_subs-all_tax-social_tranche
+gen all_miti			=am_new_pnbsf+am_delayed_pnbsf+subs_public_transport+social_tranche
+gen all_miti_noST		=am_new_pnbsf+am_delayed_pnbsf+subs_public_transport
+gen all_policies_miti	=all_subs-all_tax+am_new_pnbsf+am_delayed_pnbsf+subs_public_transport
 
 *Compute pc values 	
 foreach var of local policies {

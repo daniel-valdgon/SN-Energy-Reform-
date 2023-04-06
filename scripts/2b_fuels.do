@@ -97,17 +97,19 @@ Compute VAT collected
 		* 212	Transport urbain/rural en moto-taxi
 		* 407	Transport interlocalité par eau (bateau, pirogue, pinasse)
 		
+		gen subsidy_fuel_indirect=pind_shock*depan_net_sub
+		assert subsidy_fuel_indirect!=.
+		
+		gen subs_public_transport=0
+		
 		if $subs_public_transport == 1{
-			gen subsidy_fuel_indirect=pind_shock*depan_net_sub if !inlist(codpr, 211 /*, 214, 407*/ )
-			replace subsidy_fuel_indirect=0 if subsidy_fuel_indirect==.
-			assert subsidy_fuel_indirect!=.
-		}
-		if $subs_public_transport == 0{
-			gen subsidy_fuel_indirect=pind_shock*depan_net_sub
-			assert subsidy_fuel_indirect!=.
+			gen subsidy_fuel_indirect2=pind_shock*depan_net_sub if !inlist(codpr, 211 /*, 214, 407*/ )
+			replace subsidy_fuel_indirect2=0 if subsidy_fuel_indirect2==.
+			replace subs_public_transport = subsidy_fuel_indirect-subsidy_fuel_indirect2
+			drop subsidy_fuel_indirect2
 		}
 		
-		gcollapse (sum) subsidy_fuel_indirect , by(hhid) 
+		gcollapse (sum) subsidy_fuel_indirect subs_public_transport, by(hhid) 
 	
 	tempfile indirect_subsidy_fuel
 	save `indirect_subsidy_fuel', replace
@@ -128,7 +130,7 @@ Compute VAT collected
 	Id of policy evaluated 
 -------------------------------------------------------------------------------------*/	
 	
-	keep hhid subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel vat_fuel
+	keep hhid subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel vat_fuel subs_public_transport
 
 	tempfile fuel_tmp_dta
 	save `fuel_tmp_dta', replace  
