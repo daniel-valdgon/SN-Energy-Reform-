@@ -6,7 +6,7 @@ run "$p_scr/_ado/costpush.ado"
 local income yd   	// before I have a local here but it presented some problems 
 local ind_transf 	subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec 
 local ind_tax 		vat_elec vat_fuel
-local ind_miti		am_new_pnbsf am_delayed_pnbsf social_tranche subs_public_transport
+local ind_miti		am_new_pnbsf am_delayed_pnbsf social_tranche subs_public_transport am_pnbsf_transferinc am_pnbsf_newbenefs
 local all_groups 	all_miti all_miti_noST all_policies_miti all_policies_noST all_policies all_tax all_subs_noST all_subs all_elec_noST all_elec all_fuel
 
 local policies `ind_transf' `ind_tax' `ind_miti' `all_groups'

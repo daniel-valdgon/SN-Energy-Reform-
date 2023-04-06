@@ -5,6 +5,9 @@
 
 use `output', clear
 
+*There is one household with no information that messes up everything
+drop if hhid==.
+
 if $PMT_targeting_BSF == 1{
 	gen _e1=abs(initial_ben-(Beneficiaires*${PNBSF_benef_increase}))
 	bysort departement: egen _e=min(_e1)
@@ -52,6 +55,15 @@ dis "There are " `newben' " new beneficiaries of the PNBSF program"
 
 *The information that I need to send to the output is only the increase in the transfer, not in pc terms because that will be calculated there along with the other policies
 gen am_new_pnbsf=(new_am_BNSF_pc_0-am_BNSF_pc_0)*hhsize
+replace am_new_pnbsf=0 if am_new_pnbsf==.
+
+*We want the pnbsf disaggregated in beneficiary expansion + transfer increase
+
+gen am_pnbsf_newbenefs = 0
+replace am_pnbsf_newbenefs = Montant if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==0
+gen am_pnbsf_transferinc = 0
+replace am_pnbsf_transferinc = ${PNBSF_transfer_increase} if new_beneficiaire_PNBSF==1
+assert round(am_new_pnbsf) == round(am_pnbsf_transferinc + am_pnbsf_newbenefs) //The total effect should be the sum of the two changes in the program
 
 gen am_delayed_pnbsf = 0
 if ${delayed_PNBSF} == 1 {
@@ -59,7 +71,7 @@ if ${delayed_PNBSF} == 1 {
 }
 
 
-keep hhid am_new_pnbsf am_delayed_pnbsf
+keep hhid am_new_pnbsf am_delayed_pnbsf am_pnbsf_transferinc am_pnbsf_newbenefs
 
 tempfile new_PNBSF
 save `new_PNBSF', replace 
