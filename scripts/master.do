@@ -99,6 +99,7 @@ foreach scenario in $numscenarios {
 	 ==============================================================================================*/
 	 
 	*Rename parameters to the correspondent scenario
+	*local scenario 1                                                 //Uncomment this to run tests renaming parameters for just one scenario
 	include "$p_scr/1a_rename_pmts.do"
 
 

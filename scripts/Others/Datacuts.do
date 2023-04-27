@@ -245,6 +245,7 @@ gen profile5=(s01q01==1 & age>=15 & age<=24 & s00q04==1 & ben_BNSF==1)
 
 gen total=1
 
+*The following numbers are for the descriptives of the 0/1 variables (first table in the datacut)
 foreach var in working single married_m married_p u_libre widow divorced separated acte_naissance s06q01__1 s06q01__2 s06q01__3 s06q01__4 s06q01__5 credit ben_bourse ben_Cantine ben_BNSF ben_subCMU ben_moin5 ben_sesame ben_cesarienne total{
     forval prof = 0/5{
 	    qui sum `var' [iw=hhweight] if profile`prof'==1 & `var'==1
@@ -255,6 +256,7 @@ foreach var in working single married_m married_p u_libre widow divorced separat
 
 
 
+*The following numbers are for the descriptives of the continuous variables (second table in the datacut)
 forval prof = 0/5{
 	sum yearsedu impa impaes s05q02 s05q04 s05q06 s05q08 s05q10 s05q12 s05q14 [iw=hhweight] if profile`prof'==1
 }
@@ -283,6 +285,57 @@ merge m:1 grappe menage using "C:\Users\andre\Dropbox\Energy_Reform\data\raw\1_r
 
 tab s15q01
  
+*/
+
+tab s01q36, mis //Has a cellphone136
+rename s01q36 has_phone
+tab1 s01q39__1 s01q39__2 s01q39__3 s01q39__4 s01q39__5 s01q39__6 s01q39__7 if age>14 & age<25, mis //Has access to internet139
+gen has_internet = (s01q39__1==1 | s01q39__2==1 | s01q39__3 ==1 | s01q39__4 ==1 | s01q39__5 ==1 | s01q39__6 ==1 | s01q39__7==1 )
+
+tab1 s02q01__1 s02q01__2 s02q01__3 if age>14 & age<25, mis //Can read in any language201abc
+gen reads = (s02q01__1==1 | s02q01__2==1 | s02q01__3 ==1 )
+replace reads=. if reads==0 &  (s02q01__1>=. | s02q01__2>=. | s02q01__3>=. )
+tab1 s02q02__1 s02q02__2 s02q02__3 if age>14 & age<25, mis //Can write in any language202abc
+gen writes = (s02q02__1==1 | s02q02__2==1 | s02q02__3 ==1 )
+replace writes=. if writes==0 &  (s02q02__1>=. | s02q02__2>=. | s02q02__3>=. )
+
+foreach var in s01q06 has_phone has_internet reads writes{
+    forval prof = 0/5{
+	    qui sum `var' [iw=hhweight] if profile`prof'==1 & `var'==1
+		local cant`prof' = r(sum_w)
+	}
+	dis "`cant0' `cant1' `cant2' `cant3' `cant4' `cant5'"
+}
+
+
+*Checking unemployed variables
+foreach var in /*s04q11 s04q12 s04q13 s04q14 s04q15 s04q16 s04q17 s04q18 s04q19*/ s04q20 s04q21 s04q22 s04q23 s04q24__1 s04q24__2 s04q24__3 s04q24__4 s04q24__5 s04q24__6 s04q24__7 s04q25 /*s04q26 s04q27 s04q06 s04q07 s04q08 s04q09*/ {
+	*tab `var' s04q10 if age>14 & age<25, mis
+	tab `var' working if age>14 & age<25, mis
+}
+
+gen totally_unemployed=(s04q14==2)
+forval n=1/9{
+	gen s04q16__`n' = (s04q16==`n')
+}
+gen premier_emploi=(s04q23==2)
+gen jobsearching_or_ready = (s04q17==1|s04q19==1)
+forval n=1/5{
+	gen s04q25__`n' = (s04q25==`n')
+}
+
+foreach var of varlist s04q11 s04q13 s04q14 totally_unemployed s04q16__* jobsearching_or_ready s04q20 premier_emploi s04q24__* s04q25__* {
+    forval prof = 0/5{
+	    qui sum `var' [iw=hhweight] if profile`prof'==1 & `var'==1
+		local cant`prof' = r(sum_w)
+	}
+	dis "`cant0' `cant1' `cant2' `cant3' `cant4' `cant5'"
+}
+
+recode s04q01 s04q02 s04q03 s04q04 s04q05 (9999=.)
+forval prof = 0/5{
+	sum s04q01 s04q02 s04q03 s04q04 s04q05 [iw=hhweight] if profile`prof'==1
+}
 
 
 
@@ -292,15 +345,65 @@ tab s15q01
 
 
 
+decode s00q02, gen(ADM2_FR)
+replace ADM2_FR=strproper(ADM2_FR)
+tab ADM2_FR
+replace ADM2_FR="Koumpentoum" if ADM2_FR=="Koupentoum"
+replace ADM2_FR="Malem Hodar" if ADM2_FR=="Malem Hoddar"
+replace ADM2_FR="Medina Yoroufoula" if ADM2_FR=="Medina Yoro Foulah"
+replace ADM2_FR="Mbacke" if s00q02==33
+replace ADM2_FR="Mbour" if s00q02==71
+replace ADM2_FR="Nioro Du Rip" if ADM2_FR=="Nioro"
+replace ADM2_FR="Tivaoune" if ADM2_FR=="Tivaouane"
+
+preserve
+	gen population = 1
+	collapse (sum) profile0 profile1 profile2 profile3 profile4 profile5 population [iw=hhweight], by(ADM2_FR)
+	list in 1/5
+	merge 1:1 ADM2_FR using "${maps_sen}/DptsDB", nogen
+	gen perc1524 = round(profile0*100/population,0.01)
+	gen perc_prw = round(profile1*100/profile0, 0.1)
+	gen perc_um = round(profile2*100/profile0, 0.1)
+	egen cut_prw = cut(perc_prw), group(3) icodes
+	egen cut_um = cut(perc_um), group(3) icodes
+	tab cut_prw cut_um
+	sort cut_prw cut_um
+	egen grp_cut = group(cut_prw cut_um)
+	bys cut_prw: sum perc_prw
+	bys cut_um: sum perc_um
+	list perc_prw perc_um cut* grp_cut in 1/15
+	colorpalette ///
+	 #e8e8e8 #dfb0d6 #be64ac ///
+	 #ace4e4 #a5add3 #8c62aa ///
+	 #5ac8c8 #5698b9 #3b4994 , nograph 
+	local colors `r(p)'
+	*scatter perc_prw perc_um
+	*spmap grp_cut using "${maps_sen}/DptsCoord", id(_ID) osize(none ..) /*fcolor(Reds2)*/ fcolor("`colors'") clm(unique) legstyle(3) polygon(data("${maps_sen}/RegsCoord") ocolor(gray) osize(0.05) )
+	spmap perc_prw using "${maps_sen}/DptsCoord", id(_ID) osize(none ..) fcolor(Greens2) clnumber(10) legstyle(3) polygon(data("${maps_sen}/RegsCoord") ocolor(gray/*black%75*/) osize(0.05) )
+	*spmap perc_um using "${maps_sen}/DptsCoord", id(_ID) osize(none ..) fcolor(Reds2) clnumber(10) legstyle(3) polygon(data("${maps_sen}/RegsCoord") ocolor(gray) osize(0.05) )
+restore
 
 
 
 
+/*MAPS!!
 
 
+*CÓMO CREAR ESTOS ARCHIVOS? IMPORTEMOS EL SHAPEFILE DE DPTOS COMO EJEMPLO
+*ssc install shp2dta
+dir C:\Users\andre\Dropbox\SenegalSHP\Shapefiles/
+global maps_sen "C:\Users\andre\Dropbox\SenegalSHP\Shapefiles"
+shp2dta using "${maps_sen}/sen_admbnda_adm2_1m_gov_ocha_20190426", database("${maps_sen}/DptsDB") coordinates("${maps_sen}/DptsCoord")
+shp2dta using "${maps_sen}/sen_admbnda_adm1_1m_gov_ocha_20190426", database("${maps_sen}/RegsDB") coordinates("${maps_sen}/RegsCoord")
+
+use "${maps_sen}/DptsDB", clear
+
+*CÓMO HACER UN MAPA? PROCESAR LOS DATOS QUE QUIERO PARA TENER UNA BASE DE DATOS DE LA VARIABLE A GRAFICAR, CON LOS CÓDIGOS DE MUNICIPIOS.
+*LUEGO, PEGAR LA VARIABLE A GRAFICAR A MpiosDB
+*FINALMENTE, CORRER LA LÍNEA DE SPMAP CON MpiosCoord Y LOS PARÁMETROS DEL MAPA, CON EL ID id
 
 
-
+*/
 
 
 
