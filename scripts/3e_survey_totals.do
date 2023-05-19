@@ -83,44 +83,110 @@ gen lnincrease_pcnt = ln(increase_pcnt+sqrt(increase_pcnt^2+1))
 Table/graph of tranches per decile 
 ******************************************/
 
-local scenario 1
+foreach scenario in $numscenarios{
 
-use "$proj/data/temp/elec_tmp_scenario`scenario'.dta", clear
+	use "$proj/data/temp/elec_tmp_scenario`scenario'.dta", clear
 
-gen tranche3 = (tranche3_tool!=0 & tranche3_tool!=.)
-gen tranche2 = (tranche2_tool!=0 & tranche2_tool!=. & tranche3==0)
-gen tranche1 = (tranche1_tool!=0 & tranche1_tool!=. & tranche3==0 & tranche2==0)
-
-/*Andres formula 
-preserve 
-	gen tranche_max = tranche1+2*tranche2+3*tranche3
-	replace tranche_max = 4 if type_client==3 //DGP
-	label def tranches 0 "No electricity spending" 1 "Tranche 1" 2 "Tranche 2" 3 "Tranche 3" 4 "DGP"
-	label values tranche_max tranches
-	
-	tab tranche_max yd_deciles_pc [aw=pondih], mis matcell(tab_elec_tranches)
-	
-	clear
-	svmat tab_elec_tranches
-	
-	export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_tranches) first(variable) sheetreplace 
-restore */
-
-*Daniel's proposal 
-*Andres agrees, this is better
-
+	gen tranche3 = (tranche_elec_max==3)
+	gen tranche2 = (tranche_elec_max==2)
+	gen tranche1 = (tranche_elec_max==1)
+	gen tranche_sociale = (tranche_elec_max==0.5)
 	gen  tranche_gdp = type_client==3 //DGP
-	collapse (mean) tranche1 tranche2 tranche3 tranche_gdp [aw=pondih], by(yd_deciles_pc)
-	gen no_electr_sp=1-(tranche1+ tranche2 + tranche3 + tranche_gdp)
-	
-	foreach v in no_electr_sp tranche1  tranche2  tranche3  tranche_gdp {
+
+	collapse (mean) tranche_sociale tranche1 tranche2 tranche3 tranche_gdp [aw=pondih], by(yd_deciles_pc)
+	gen no_electr_sp=1-(tranche_sociale + tranche1 + tranche2 + tranche3 + tranche_gdp)
+
+	foreach v in no_electr_sp tranche_sociale tranche1  tranche2  tranche3  tranche_gdp {
 		replace `v'=100*`v'
 	}
 	
-	export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_tranches) first(variable) sheetreplace 
+	gen scenario = `scenario'
+	
+	tempfile elec1_`scenario'
+	save `elec1_`scenario'', replace
+}
+
+clear
+foreach scenario in $numscenarios{
+	append using `elec1_`scenario''
+}
+
+export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_tranches) first(variable) sheetreplace 
 
 
 
+/****************************************
+Table/graph of cons groups per decile 
+******************************************/
+
+foreach scenario in $numscenarios{
+
+	use "$proj/data/temp/elec_tmp_scenario`scenario'.dta", clear
+
+	gen DPP_prep  = (type_client==1 & prepaid==1)
+	gen DPP_postp = (type_client==1 & prepaid==0)
+	gen DMP_prep  = (type_client==2 & prepaid==1)
+	gen DMP_postp = (type_client==2 & prepaid==0)
+	gen DGP       = (type_client==3)
+
+	collapse (mean) DPP_prep DPP_postp DMP_prep DMP_postp DGP [aw=pondih], by(yd_deciles_pc)
+	gen no_electr_sp=1-(DPP_prep + DPP_postp + DMP_prep + DMP_postp + DGP)
+
+	foreach v in no_electr_sp DPP_prep DPP_postp DMP_prep DMP_postp DGP {
+		replace `v'=100*`v'
+	}
+
+	gen scenario = `scenario'
+	
+	tempfile elec2_`scenario'
+	save `elec2_`scenario'', replace
+}
+
+clear
+foreach scenario in $numscenarios{
+	append using `elec2_`scenario''
+}
+
+export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_cons_groups) first(variable) sheetreplace 
+
+
+
+
+/****************************************
+Table/graph of Total amounts per tranches
+******************************************/
+
+foreach scenario in $numscenarios{
+	*local scenario 1
+	use "$proj/data/temp/elec_tmp_scenario`scenario'.dta", clear
+
+	gen tranche3 = (tranche_elec_max==3)
+	gen tranche2 = (tranche_elec_max==2)
+	gen tranche1 = (tranche_elec_max==1)
+	gen tranche_sociale = (tranche_elec_max==0.5)
+	gen tranche_dgp = type_client==3 //DGP
+	
+	gen totalpaid_elec = consumption_electricite*avg_price_elec*6
+	recode totalpaid_elec (.=0)
+
+	collapse (sum) totalpaid_elec vat_elec subsidy_elec_direct subsidy_elec_indirect [aw=hhweight], by(tranche_elec_max tranche_dgp)
+	
+	foreach v in totalpaid_elec vat_elec subsidy_elec_direct subsidy_elec_indirect {
+		replace `v'=`v'/1000000
+	}
+	
+	gen scenario = `scenario'
+	
+	tempfile elec2_`scenario'
+	save `elec2_`scenario'', replace
+}
+
+clear
+foreach scenario in $numscenarios{
+	append using `elec2_`scenario''
+}
+
+export excel "$p_res/${namexls}.xlsx", sheet(tab_elec_Revenues) first(variable) sheetreplace 
 
 
 

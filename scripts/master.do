@@ -74,7 +74,8 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-global namexls	"simul_results_mitigation_MAIN"
+global namexls	"simul_results_New_SocialTranche"
+*global namexls	"simul_results_mitigation_MAIN"
 *global namexls	"simul_results_VAT"
 global numscenarios 1 2 3 4
 
@@ -111,7 +112,8 @@ foreach scenario in $numscenarios {
 	 ==============================================================================================*/
 
 	*Electricity 
-	include "$p_scr/2a_electricity.do"
+	
+	include "$p_scr/2a_electricity_FullPrice${full_tariffs_elec}.do"
 
 	*Fuels 
 	include "$p_scr/2b_fuels.do" // include "$p_scr/2b_fuels_old.do" 

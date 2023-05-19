@@ -23,11 +23,11 @@ order scenario
 foreach scenario in $numscenarios {
     
 	*ALL THE PARAMETERS 
-	foreach v in vatexempt_tra tariffs_pre_t1 tariffs_pre_t2 tariffs_pre_t3 ///
-	tranche1_pre tranche2_pre tariffs_post_t1 tariffs_post_t2 tariffs_post_t3 ///
-	tranche1_post tranche2_post cost dmp_pre_tar_t1 dmp_pre_tar_t2 dmp_pre_tar_t3 ///
-	dmp_pre_tra_t1 dmp_pre_tra_t2 dmp_post_tar_t1 dmp_post_tar_t2 dmp_post_tar_t3 ///
-	dmp_post_tra_t1 dmp_post_tra_t2 DGP_tar cost_firms tar_firms subsidy_firms share_elec_io ///
+	foreach v in full_tariffs_elec vatexempt_tra tariffs_pre_ts tariffs_pre_t1 tariffs_pre_t2 tariffs_pre_t3 ///
+	tranches_pre tranche1_pre tranche2_pre tariffs_post_ts tariffs_post_t1 tariffs_post_t2 tariffs_post_t3 ///
+	tranches_post tranche1_post tranche2_post cost dmp_pre_tar_ts dmp_pre_tar_t1 dmp_pre_tar_t2 dmp_pre_tar_t3 ///
+	dmp_pre_tra_ts dmp_pre_tra_t1 dmp_pre_tra_t2 dmp_post_tar_ts dmp_post_tar_t1 dmp_post_tar_t2 dmp_post_tar_t3 ///
+	dmp_post_tra_ts dmp_post_tra_t1 dmp_post_tra_t2 DGP_tar cost_firms tar_firms subsidy_firms share_elec_io ///
 	mp_butane mp_pet_lamp mp_gasoil mp_ordinaire mp_pirogue mp_super mp_fuel mp_industryfuel ///
 	sp_butane sp_pet_lamp sp_gasoil sp_ordinaire sp_pirogue sp_super sp_fuel sp_industryfuel ///
 	margin_detaillant popgrowth_20 popgrowth_21 popgrowth_22 inf_20 inf_21 inf_22 elec_uprating gdp_22 ///
@@ -41,10 +41,7 @@ foreach scenario in $numscenarios {
 		global `v'_s`scenario' = ""
 		levelsof `v' if scenario==`scenario', local(value)
 		global `v'_s`scenario' = `value'
-	}
-	
-	
-	 
+	} 
 }
 
 tempfile list_dta
