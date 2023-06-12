@@ -57,7 +57,7 @@ foreach x in income policies  {
 tempfile dta_pc
 save `dta_pc', replace 
 
-save "$p_o/${namexls}.dta", replace 
+save "$p_o/${namexls}`scenario'.dta", replace 
 
 *===============================================================================
 		*1 Poverty 
