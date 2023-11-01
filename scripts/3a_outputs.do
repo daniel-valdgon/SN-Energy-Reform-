@@ -16,7 +16,8 @@ local pline zref // line_19 line_32 line_55
 
 use `output', clear 
 
-keep  hhid yd_deciles_pc yd_pc yn_pc hhsize pondih all zref hhweight am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc
+
+keep  hhid yd_deciles_pc yd_pc hhsize pondih all zref hhweight
 merge 1:1 hhid using `fuel_tmp_dta', nogen 
 merge 1:1 hhid using `elec_tmp_dta', nogen 
 

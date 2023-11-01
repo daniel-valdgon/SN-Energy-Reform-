@@ -17,15 +17,15 @@
  ==============================================================================================*/
 
 *use `fuel_tmp_dta', clear
-use "$path_ceq/2_pre_sim/08_subsidies_fuel.dta", clear   
+use "$path_ceq/2_pre_sim/08_subsidies_fuel_2021.dta", clear   
 keep hhid q_fuel q_pet_lamp q_butane
-
+/*
 replace q_fuel=q_fuel*(${fuel_uprating})/(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) //discounting population growth to do the uprating  
 replace q_pet_lamp=q_pet_lamp*(${pet_lamp_uprating})/(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) //discounting population growth to do the uprating  
 replace q_butane=q_butane*(${butane_uprating})/(${popgrowth_20})*(${popgrowth_21})*(${popgrowth_22}) //discounting population growth to do the uprating  
-	
+	*/
 
-merge 1:1  hhid using `output', keepusing(hhweight hhweight_orig pondih yd_deciles_pc) nogen // weight updated 
+merge 1:1  hhid using `output', keepusing(hhweight pondih yd_deciles_pc) nogen // weight updated 
 
 sum q_* [aw=hhweight]
 
@@ -47,7 +47,7 @@ Let's check if the average increase in tariffs match the announcement:
  
 use "$proj/data/temp/elec_tmp_scenario1.dta", clear
 cap drop _merge
-foreach var of varlist s11q24a - yd_deciles_pc{
+foreach var of varlist s11q23a - yd_deciles_pc{
     rename `var' `var'_s1
 }
 
