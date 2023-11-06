@@ -28,16 +28,20 @@ collapse (sum) depan, by(hhid grappe menage hhweight)
 *merge 1:1 hhid grappe menage using "$path_raw/../../Dataout/Temp/hhsize.dta", keepusing (hhsize) nogen
 merge 1:1 hhid grappe menage using "$path_raw/../../Dataout/ehcvm_welfare_SEN_2021.dta", nogen
 *merge 1:1 hhid using "$path_raw/../../Dataout/ehcvm_welfare_1a_SEN_2021.dta", nogen
-/*
-gen la=ln(depan)
-gen ld=ln(dtot)
-gen dif=depan-dtot
-gen ldif=la-ld
-sum depan dtot dif ldif
-twoway (kdensity la) (kdensity ld) 
-kdensity ldif
-twoway (scatter la ld, msize(tiny)) (line la la, sort), legend(off)
-*/
+
+preserve
+	*global namexls	"PNBSF_reform"
+	import excel "$p_res/${namexls}.xlsx", sheet("PNBSF_deps") first clear cellrange(B4)
+	rename Nombredebénéficiares2018 Beneficiaires
+	rename Montantdutransfertparan Montant
+	drop if departement==. | RegionDepartement==" General"
+	egen _tot=total (Beneficiaires)
+	gen double share=Beneficiaires/_tot
+	keep departement share Beneficiaires Montant
+	tempfile deparments_dist
+	save `deparments_dist', replace 
+restore
+
 gen yd_pc = dtot/hhsize
 gen depan_pc = depan/hhsize
 gen pondih = hhweight*hhsize

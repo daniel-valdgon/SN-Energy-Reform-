@@ -40,11 +40,12 @@ if "`c(username)'"=="andre" {
 	global proj	"C:\Users\andre\Dropbox\Energy_Reform" // project folder
 	
 	*Prepare data on consumption 
-	global path_raw "$proj/EHCVM2021/Datain/Menage"
-	global path_ceq "$proj/data/raw"
-	global p_scr 	"$proj/SN-Energy-Reform-/scripts"
-	*global p_res	"$proj/results"
-	global p_res	"$proj/SN-Energy-Reform-/results"
+	global path_raw1 "$proj/EHCVM2021/Datain/Menage"
+	global path_raw2 "$proj/EHCVM2021/Dataout"
+	global path_ceq  "$proj/data/raw"
+	global p_scr 	 "$proj/SN-Energy-Reform-/scripts"
+	*global p_res	 "$proj/results"
+	global p_res	 "$proj/SN-Energy-Reform-/results"
 	
 } 
 
