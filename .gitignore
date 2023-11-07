@@ -4,6 +4,7 @@
 ##folders : example **/FAIS*, **/analysis/scripts/logs* or **/r_data/*
 **/Docs/*
 **/data/*
+**/products/*
 
 ## Other no code files 
 *.pptx
