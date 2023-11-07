@@ -24,6 +24,9 @@ if $PMT_targeting_BSF == 1{
 	drop Beneficiaires_i
 }
 
+if ${PNBSF_benef_increase}<=1{
+	replace new_am_BNSF_pc_0=0
+}
 replace new_am_BNSF_pc_0=(Montant+${PNBSF_transfer_increase})/hhsize if recu_PNBSF==1
 
 
