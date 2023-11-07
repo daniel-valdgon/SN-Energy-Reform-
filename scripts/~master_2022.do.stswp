@@ -40,6 +40,7 @@ if "`c(username)'"=="andre" {
 	global proj	"C:\Users\andre\Dropbox\Energy_Reform" // project folder
 	
 	*Prepare data on consumption 
+	global path_raw "$proj/EHCVM2021/Datain/Menage"
 	global path_raw1 "$proj/EHCVM2021/Datain/Menage"
 	global path_raw2 "$proj/EHCVM2021/Dataout"
 	global path_ceq  "$proj/data/raw"

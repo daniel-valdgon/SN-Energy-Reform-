@@ -27,7 +27,7 @@ collapse (sum) depan, by(hhid grappe menage hhweight)
 
 *merge 1:1 hhid grappe menage using "$path_raw/../../Dataout/Temp/hhsize.dta", keepusing (hhsize) nogen
 merge 1:1 hhid grappe menage using "$path_raw/../../Dataout/ehcvm_welfare_SEN_2021.dta", nogen
-*merge 1:1 hhid using "$path_raw/../../Dataout/ehcvm_welfare_1a_SEN_2021.dta", nogen
+merge 1:1 vague grappe menage using "$presim/07_PMT_2021.dta", nogen
 
 preserve
 	*global namexls	"PNBSF_reform"
@@ -41,6 +41,25 @@ preserve
 	tempfile deparments_dist
 	save `deparments_dist', replace 
 restore
+
+merge m:1 departement using `deparments_dist', nogen
+
+*Assigning PNBSF beneficiaries (approx. 300,000) using the "closest weight" algorithm
+rename pmt_seed rannum
+bysort departement (PMT rannum): gen initial_ben= sum(hhweight)
+gen _e1=abs(initial_ben-Beneficiaires)
+bysort departement: egen _e=min(_e1)
+gen _icum=initial_ben if _e==_e1
+bysort departement: egen Beneficiaires_i=total(_icum)
+bysort departement: egen _icum2_sd=sd(_icum)
+assert _icum2_sd!=0
+drop _icum2_sd _icum _e _e1
+gen am_BNSF_pc_0=(Montant/hhsize)*(initial_ben<=Beneficiaires_i) // Beneficiaires 
+drop Beneficiaires_i
+
+replace am_BNSF_pc_0 = 0
+replace am_BNSF_pc_0 = (Montant/hhsize) if recu_PNBSF==1
+
 
 gen yd_pc = dtot/hhsize
 gen depan_pc = depan/hhsize

@@ -186,7 +186,7 @@ rename xb PMT
 *What if we want to predict the likelihood of being a PNBSF recipient?
 logit recu_PNBSF log_cons_pc majeur_60 jeune_15 i.eau_potable i.assainissement i.revetement_sol ///
 	eau_potable1 eau_potable2 i.eclairage i.revetement_mur i.toilette piece_pc ///
-	nombre_assets appartient_menage possesions_elevage i.hgender hage i.hreligion i.hethnie
+	nombre_assets appartient_menage possesions_elevage i.hgender hage i.hreligion
 
 predict pr
 rename pr PNBSF_propensity
@@ -195,6 +195,9 @@ sum PNBSF_propensity
 
 *If we want to start assigning PNBSF to those that actually report it, we can modify the propensity like this:
 replace PNBSF_propensity = PNBSF_propensity+recu_PNBSF
+
+drop PMT
+gen PMT=-PNBSF_propensity
 
 /*------------------------------------------------
  Sorting individuals by within each department by PMT score
