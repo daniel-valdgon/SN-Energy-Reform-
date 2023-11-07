@@ -92,27 +92,27 @@ Compute VAT collected
 			else if "`payment'"=="0" local type_pay "post"
 		
 		*--> DPP 
-			replace vat_t3   =	 tranche3_tool  * ${tariffs_`type_pay'_t3} *0.18/(1.18) if prepaid==`payment' & type_client==1
-			replace vat_t2   =	 tranche2_tool	* ${tariffs_`type_pay'_t2} *0.18/(1.18) if prepaid==`payment' & type_client==1
-			replace vat_t1   =	 tranche1_tool	* ${tariffs_`type_pay'_t1} *0.18/(1.18) if prepaid==`payment' & type_client==1
-			replace vat_ts   =	 tranches_tool	* ${tariffs_`type_pay'_ts} *0.18/(1.18) if prepaid==`payment' & type_client==1
+			replace vat_t3   =	 tranche3_tool  * ${tariffs_`type_pay'_t3} *0.18 if prepaid==`payment' & type_client==1
+			replace vat_t2   =	 tranche2_tool	* ${tariffs_`type_pay'_t2} *0.18 if prepaid==`payment' & type_client==1
+			replace vat_t1   =	 tranche1_tool	* ${tariffs_`type_pay'_t1} *0.18 if prepaid==`payment' & type_client==1
+			replace vat_ts   =	 tranches_tool	* ${tariffs_`type_pay'_ts} *0.18 if prepaid==`payment' & type_client==1
 		
 		*--> DMP
-			replace vat_t3   =	tranche3_tool * ${dmp_`type_pay'_tar_t3}*0.18/(1.18) if prepaid==`payment' & type_client==2
-			replace vat_t2   =	tranche2_tool * ${dmp_`type_pay'_tar_t2}*0.18/(1.18) if prepaid==`payment' & type_client==2
-			replace vat_t1   =	tranche1_tool * ${dmp_`type_pay'_tar_t1}*0.18/(1.18) if prepaid==`payment' & type_client==2
-			replace vat_ts   =	tranches_tool * ${dmp_`type_pay'_tar_ts}*0.18/(1.18) if prepaid==`payment' & type_client==2
+			replace vat_t3   =	tranche3_tool * ${dmp_`type_pay'_tar_t3}*0.18 if prepaid==`payment' & type_client==2
+			replace vat_t2   =	tranche2_tool * ${dmp_`type_pay'_tar_t2}*0.18 if prepaid==`payment' & type_client==2
+			replace vat_t1   =	tranche1_tool * ${dmp_`type_pay'_tar_t1}*0.18 if prepaid==`payment' & type_client==2
+			replace vat_ts   =	tranches_tool * ${dmp_`type_pay'_tar_ts}*0.18 if prepaid==`payment' & type_client==2
 	}
 	
 	*--> DGP
-		gen vat_dgp=consumption_electricite*${DGP_tar}*0.18/(1.18) if type_client==3 
+		gen vat_dgp=consumption_electricite*${DGP_tar}*0.18 if type_client==3 
 	
 	*Adding the VAT exemptions: VAT is paid for households who consume tranche 3
 	// 0=no exemptions, 1=social tranche, 2=T1, 3=T!&T2
 	
 	egen vat_elec=rowtotal(vat_ts vat_t1 vat_t2 vat_t3 vat_dgp)
 	
-	gen avg_price_elec = vat_elec/(0.18* consumption_electricite/(1.18))
+	gen avg_price_elec = vat_elec/(0.18* consumption_electricite)
 	scatter avg_price_elec consumption_electricite if consumption_electricite<=700, msize(tiny)
 		
 	if "${vatexempt_tra}"=="1" {
