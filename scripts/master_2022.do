@@ -75,7 +75,8 @@ foreach f of local files {
 }
 
 foreach f in missings {
-	qui: cap ssc install `f'
+	cap which `f'
+	if _rc ssc install `f'
 	
 }
 
