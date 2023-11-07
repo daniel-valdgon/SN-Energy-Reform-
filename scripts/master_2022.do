@@ -110,9 +110,9 @@ include "$p_scr/0_pull_pmts.do" // we need to load parameters again because pre_
 *Running multiple scenarios
 foreach scenario in $numscenarios {
 
-	/*===============================================================================================
+/*===============================================================================================
 		Preparing data:
-	 ==============================================================================================*/
+ ==============================================================================================*/
 	 
 	*Rename parameters to the correspondent scenario
 	*local scenario 1                                                 //Uncomment this to run tests renaming parameters for just one scenario
@@ -122,12 +122,11 @@ foreach scenario in $numscenarios {
 	*Uprating
 	include "$p_scr/1b_updating_survey_2022.do" //include "$p_scr/1b_updating_survey_old.do"
 
-	/*===============================================================================================
+/*===============================================================================================
 		Simulation 
-	 ==============================================================================================*/
+ ==============================================================================================*/
 
 	*Electricity 
-	
 	include "$p_scr/2a_electricity_FullPrice${full_tariffs_elec}_2022.do"
 
 	*Fuels 
@@ -137,7 +136,6 @@ foreach scenario in $numscenarios {
 	include "$p_scr/2c_mitigations_2022.do" // include "$p_scr/2b_fuels_old.do" 
 
 	* Load CEQ data and compute parameters and and export into results 
-
 	include "$p_scr/3a_outputs.do" //Note: this produces a tempfile per scenario
 
 }
@@ -169,12 +167,7 @@ export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetrep
 *loop para tener esta tabla para cada scenario
 include "$p_scr/3e_survey_totals.do" // include "$p_scr/2b_fuels_old.do" 
 
-
-
 shell ! "$p_res/${namexls}.xlsx"
-
-
-
 
 
 
