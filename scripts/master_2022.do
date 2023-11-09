@@ -39,6 +39,9 @@ if "`c(username)'"=="wb419055" {
 	
 	global path_ceq "C:\Users\wb419055\OneDrive - WBG\West Africa\Senegal\JTR\Energy_reform/data/raw"
 	global presim	"C:\Users\wb419055\OneDrive - WBG\West Africa\Senegal\JTR\Energy_reform/data/raw/2_pre_sim"
+	
+	global p_o 		"$proj/data/output"
+	
 } 
 
 if "`c(username)'"=="andre" {
@@ -74,7 +77,7 @@ foreach f of local files {
 	qui: cap run "$p_scr/_ado/`f'"
 }
 
-foreach f in missings {
+foreach f in missings gtools {
 	cap which `f'
 	if _rc ssc install `f'
 	
@@ -201,36 +204,6 @@ exit
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-*---| cargas tu policy dataset
-*calculas en tu microdata y guardas resultados no mas , pegados de tu policy id_code: vat_1 vat_2 vat_3 + vat_total same for subsidies, hhid ...al cual le pegamos el disposable income 
-
-*---| Luego un do-file que procese resultados 
-*haces append de esos resultados
-
-10 deciles (coverage)  X 3 tranches 
-10 deciles reltaive incidence
-10 deciles absolute incidence
-
-Indicators: pobreza, gini and all, marginal values manually based on ...... disposable income 
- 
-Indicators collection
 
 
 

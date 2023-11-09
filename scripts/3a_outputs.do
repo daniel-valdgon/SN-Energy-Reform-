@@ -1,7 +1,7 @@
 
-run "$p_scr/_ado/sp_groupfunction.ado"
-run "$p_scr/_ado/groupfunction.ado"
-run "$p_scr/_ado/costpush.ado"
+* run "$p_scr/_ado/sp_groupfunction.ado"
+* run "$p_scr/_ado/groupfunction.ado"
+* run "$p_scr/_ado/costpush.ado"
 
 local income yd   	// before I have a local here but it presented some problems 
 local ind_transf 	subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec 
