@@ -103,7 +103,7 @@ Compute VAT collected
 		gen subs_public_transport=0
 		
 		if $subs_public_transport == 1{
-			gen subsidy_fuel_indirect2=pind_shock*depan_net_sub if !inlist(codpr, 211 /*, 214, 407*/ )
+			gen subsidy_fuel_indirect2=pind_shock*depan_net_sub if !inlist(codpr, 211, 212, 210 /*, 214, 407*/ )
 			replace subsidy_fuel_indirect2=0 if subsidy_fuel_indirect2==.
 			replace subs_public_transport = subsidy_fuel_indirect-subsidy_fuel_indirect2
 			drop subsidy_fuel_indirect2

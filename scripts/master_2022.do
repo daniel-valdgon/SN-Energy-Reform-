@@ -23,22 +23,16 @@ macro drop all
 set more off, perm
 
 // Note that scripts folder and project folder can be separated from each other. This gives flexibility for collaborators not needing to share datasets but only code
-
-if "`c(username)'"=="wb419055" {
+if "`c(username)'"=="WB419055" {
 	
-	global proj	"C:\Users\wb419055\OneDrive - WBG\West Africa\Senegal\Senegal_tool\Projects\01_Energy_reform" // project folder
+	global proj	"C:/Users/WB419055/OneDrive - WBG/SenSim Tool/JTR/Energy_reform" // project folder
 	
-	global p_scr 	"$proj/scripts"
-	global p_res	"$proj/results"
 	
 	*Prepare data on consumption 
-	global path_raw1 "C:/Users/wb419055/OneDrive - WBG/West Africa/Senegal/data/EHCVM/EHCVM_2021/Datain/Menage"
-	global path_raw2 "C:/Users/wb419055/OneDrive - WBG/West Africa/Senegal/data/EHCVM/EHCVM_2021/Dataout"
-	global path_raw  "C:/Users/wb419055/OneDrive - WBG/West Africa/Senegal/data/EHCVM/EHCVM_2021/Datain/Menage"
-	
-	
-	global path_ceq "C:\Users\wb419055\OneDrive - WBG\West Africa\Senegal\JTR\Energy_reform/data/raw"
-	global presim	"C:\Users\wb419055\OneDrive - WBG\West Africa\Senegal\JTR\Energy_reform/data/raw/2_pre_sim"
+	global path_raw "$proj/data/raw"
+	global path_ceq "$proj/data/raw"
+	global p_scr 	"$proj/scripts"
+	global p_res	"$proj/results"
 } 
 
 if "`c(username)'"=="andre" {
@@ -54,14 +48,12 @@ if "`c(username)'"=="andre" {
 	*global p_res	 "$proj/results"
 	global p_res	 "$proj/SN-Energy-Reform-/results"
 	
-	global p_o 		"$proj/data/output"
-	global p_pre 	"$proj/pre_analysis"
-	global presim	"$proj/data/raw/2_pre_sim"
-
-	
 } 
 
 
+global p_o 		"$proj/data/output"
+global p_pre 	"$proj/pre_analysis"
+global presim	"$proj/data/raw/2_pre_sim"
 
 
 *===============================================================================
@@ -74,13 +66,6 @@ foreach f of local files {
 	qui: cap run "$p_scr/_ado/`f'"
 }
 
-foreach f in missings {
-	cap which `f'
-	if _rc ssc install `f'
-	
-}
-
-
 cap log close
 log using "$proj/docs/log_fullmodel.smcl", replace
 
@@ -90,9 +75,9 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-*global namexls	"simul_results_New_SocialTranche_Reform2_p1"
-*global namexls	"simul_results_New_SocialTranche_2022"
-global namexls	"simul_results_2022_ReformMitigations"
+*global namexls	"simul_results_2022_ReformMitigations - 2021_cost19_158"
+global namexls	"simul_results_2022_ReformMitigations - 2021_cost22_139"
+*global namexls	"simul_results_2022_ReformMitigations"
 *global namexls	"simul_results_VAT"
 global numscenarios 1 2 3 4
 
@@ -112,9 +97,9 @@ include "$p_scr/0_pull_pmts.do" // we need to load parameters again because pre_
 *Running multiple scenarios
 foreach scenario in $numscenarios {
 
-/*===============================================================================================
+	/*===============================================================================================
 		Preparing data:
- ==============================================================================================*/
+	 ==============================================================================================*/
 	 
 	*Rename parameters to the correspondent scenario
 	*local scenario 1                                                 //Uncomment this to run tests renaming parameters for just one scenario
@@ -124,11 +109,12 @@ foreach scenario in $numscenarios {
 	*Uprating
 	include "$p_scr/1b_updating_survey_2022.do" //include "$p_scr/1b_updating_survey_old.do"
 
-/*===============================================================================================
+	/*===============================================================================================
 		Simulation 
- ==============================================================================================*/
+	 ==============================================================================================*/
 
 	*Electricity 
+	
 	include "$p_scr/2a_electricity_FullPrice${full_tariffs_elec}_2022.do"
 
 	*Fuels 
@@ -138,6 +124,7 @@ foreach scenario in $numscenarios {
 	include "$p_scr/2c_mitigations_2022.do" // include "$p_scr/2b_fuels_old.do" 
 
 	* Load CEQ data and compute parameters and and export into results 
+
 	include "$p_scr/3a_outputs.do" //Note: this produces a tempfile per scenario
 
 }
@@ -169,7 +156,12 @@ export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetrep
 *loop para tener esta tabla para cada scenario
 include "$p_scr/3e_survey_totals.do" // include "$p_scr/2b_fuels_old.do" 
 
+
+
 shell ! "$p_res/${namexls}.xlsx"
+
+
+
 
 
 

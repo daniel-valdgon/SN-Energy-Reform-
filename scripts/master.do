@@ -75,9 +75,9 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 */
 
 *global namexls	"simul_results_New_SocialTranche_Reform2_p1"
-*global namexls	"simul_results_New_SocialTranche2"
-global namexls	"simul_results_2022_ReformMitigations_copy"
-*global namexls	"simul_results_VAT"
+global namexls	"simul_results_ReformMitigations - 2018"
+*global namexls	"simul_results_2022_ReformMitigations_copy"
+*global namexls	"simul_results_2022_ReformMitigations - tranchexempt"
 global numscenarios 1 2 3 4
 
 
