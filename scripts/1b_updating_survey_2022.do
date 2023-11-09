@@ -61,7 +61,8 @@ replace am_BNSF_pc_0 = 0
 replace am_BNSF_pc_0 = (Montant/hhsize) if recu_PNBSF==1
 
 
-gen yd_pc = dtot/hhsize
+*gen yd_pc = dtot/hhsize
+gen yd_pc = pcexp
 gen depan_pc = depan/hhsize
 gen pondih = hhweight*hhsize
 
