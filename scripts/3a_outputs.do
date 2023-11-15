@@ -1,13 +1,13 @@
 
-run "$p_scr/_ado/sp_groupfunction.ado"
-run "$p_scr/_ado/groupfunction.ado"
-run "$p_scr/_ado/costpush.ado"
+* run "$p_scr/_ado/sp_groupfunction.ado"
+* run "$p_scr/_ado/groupfunction.ado"
+* run "$p_scr/_ado/costpush.ado"
 
 local income yd   	// before I have a local here but it presented some problems 
 local ind_transf 	subsidy_fuel_direct subsidy_fuel_indirect subsidy_fuel subsidy_elec_direct subsidy_elec_indirect subsidy_elec 
 local ind_tax 		vat_elec vat_fuel
-local ind_miti		am_new_pnbsf
-local all_groups 	all_policies_miti all_policies all_tax all_subs all_elec all_fuel
+local ind_miti		am_new_pnbsf am_delayed_pnbsf social_tranche subs_public_transport am_pnbsf_transferinc am_pnbsf_newbenefs
+local all_groups 	all_miti all_miti_noST all_policies_miti all_policies_noST all_policies all_tax all_subs_noST all_subs all_elec_noST all_elec all_fuel
 
 local policies `ind_transf' `ind_tax' `ind_miti' `all_groups'
 local pline zref // line_19 line_32 line_55
@@ -16,38 +16,27 @@ local pline zref // line_19 line_32 line_55
 
 use `output', clear 
 
-keep  hhid yd_deciles_pc yd_pc yn_pc hhsize pondih all zref hhweight am_bourse_pc am_Cantine_pc am_BNSF_pc am_subCMU_pc am_sesame_pc am_moin5_pc am_cesarienne_pc
+
+keep  hhid yd_deciles_pc yd_pc hhsize pondih all zref hhweight
 merge 1:1 hhid using `fuel_tmp_dta', nogen 
 merge 1:1 hhid using `elec_tmp_dta', nogen 
 
 *Mitigation measure: new PNBSF policy
 merge 1:1 hhid using `new_PNBSF', nogen
-gen old_beneficiaire_PNBSF = (am_BNSF_pc>0)
-count if old_beneficiaire_PNBSF==1										//Every previous beneficiary...
-local old=r(N)
-count if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==1			//...should continue being one
-local new=r(N)
-assert `old'==`new'
-
-count if new_beneficiaire_PNBSF==1 & old_beneficiaire_PNBSF==0
-dis "There are " r(N) " new beneficiaries of the PNBSF program"
-
-gen am_new_pnbsf = 0
-replace am_new_pnbsf = ${PNBSF_transfer_increase} if old_beneficiaire_PNBSF==1
-replace am_new_pnbsf = ${PNBSF_transfer_increase}+100000 if old_beneficiaire_PNBSF==0 & new_beneficiaire_PNBSF==1
-*new disposable income:
-*clonevar yd_pc = yd_pc_before_mitigation 
-*replace yd_pc = yd_pc+am_new_pnbsf_pc
-
 
 
 *Adding policies
 egen all_subs			=rowtotal(subsidy_fuel subsidy_elec)
+gen all_subs_noST		=subsidy_fuel+subsidy_elec-social_tranche
 egen all_tax			=rowtotal(vat_elec vat_fuel)
 gen all_elec			=subsidy_elec-vat_elec
+gen all_elec_noST		=subsidy_elec-vat_elec-social_tranche
 gen all_fuel			=subsidy_fuel-vat_fuel
 gen all_policies		=all_subs-all_tax
-gen all_policies_miti	=all_subs-all_tax+am_new_pnbsf
+gen all_policies_noST	=all_subs-all_tax-social_tranche
+gen all_miti			=am_new_pnbsf+am_delayed_pnbsf+subs_public_transport+social_tranche
+gen all_miti_noST		=am_new_pnbsf+am_delayed_pnbsf+subs_public_transport
+gen all_policies_miti	=all_subs-all_tax+am_new_pnbsf+am_delayed_pnbsf+subs_public_transport
 
 *Compute pc values 	
 foreach var of local policies {
@@ -69,7 +58,7 @@ foreach x in income policies  {
 tempfile dta_pc
 save `dta_pc', replace 
 
-save "$p_o/${namexls}.dta", replace 
+save "$p_o/${namexls}`scenario'.dta", replace 
 
 *===============================================================================
 		*1 Poverty 
@@ -83,11 +72,7 @@ save "$p_o/${namexls}.dta", replace
 		gen inc_`var'=yd_pc-`var'_pc         // effect with the policy for indirect taxes
 		local mc_income `mc_income' inc_`var'   //  Store varnames in list mc_income
 	}
-	foreach var of local ind_transf {
-		gen inc_`var'=yd_pc+`var'_pc 		 // effect with the policy for subsidies
-		local mc_income `mc_income' inc_`var'   // Store varnames in list mc_income
-	}
-	foreach var of local ind_miti {
+	foreach var in `ind_transf' `ind_miti' {
 		gen inc_`var'=yd_pc+`var'_pc 		 // effect with the policy for subsidies
 		local mc_income `mc_income' inc_`var'   // Store varnames in list mc_income
 	}
@@ -122,11 +107,7 @@ use `dta_pc', clear
 		gen share_`x'_pc= -`x'_pc/yd_pc 
 		gen c_share_`x'_pc= -`x'_pc/yd_pc if `x'_pc>0 & `x'_pc!=. //conditional incidence
 	}		
-	foreach x of local  ind_transf {
-		gen share_`x'_pc= `x'_pc/yd_pc   
-		gen c_share_`x'_pc= `x'_pc/yd_pc  if `x'_pc>0 //conditional incidence
-	}		
-	foreach x of local  ind_miti {
+	foreach x in `ind_transf' `ind_miti' {
 		gen share_`x'_pc= `x'_pc/yd_pc   
 		gen c_share_`x'_pc= `x'_pc/yd_pc  if `x'_pc>0 //conditional incidence
 	}

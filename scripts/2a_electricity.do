@@ -128,7 +128,7 @@ Compute VAT collected
 			replace subsidy2=(${cost}-${tariffs_`type_pay'_t2})*tranche2_tool if type_client==1 & prepaid==`payment'
 			replace subsidy3=(${cost}-${tariffs_`type_pay'_t3})*tranche3_tool if type_client==1 & prepaid==`payment'
 	
-		*-->DMP : Note this policy values are fixed 
+		*-->DMP : Note these policy values are fixed 
 			replace subsidy1=(${cost}-${dmp_`type_pay'_tar_t1})*tranche1_tool if type_client==2 & prepaid==`payment'
 			replace subsidy2=(${cost}-${dmp_`type_pay'_tar_t2})*tranche2_tool if type_client==2 & prepaid==`payment'
 			replace subsidy3=(${cost}-${dmp_`type_pay'_tar_t3})*tranche3_tool if type_client==2 & prepaid==`payment'
@@ -144,6 +144,11 @@ Compute VAT collected
 	
 	*Cost (this is required for one graph in the slides)
 	gen cost_elec = ${cost}*consumption_electricite*6
+	
+	*Social tranche: this is already included in the subsidies above, so I will calculate the amount that should be subtracted from the subsidy to get the "no-social-tranche subsidy of DPP-T1"
+	gen social_tranche=0
+	replace social_tranche=(${tariffs_t1_no_socialt}-${tariffs_post_t1})*tranche1_tool if type_client==1 & prepaid==0
+	replace social_tranche=(${tariffs_t1_no_socialt}-${tariffs_pre_t1})*tranche1_tool if type_client==1 & prepaid==1
 	
 	tempfile vat_sub_tmp
 	save `vat_sub_tmp'
@@ -222,7 +227,7 @@ Compute VAT collected
 		save "$proj/data/temp/elec_tmp_scenario`scenario'.dta", replace
 	restore
 	
-	keep hhid subsidy_elec_direct subsidy_elec_indirect subsidy_elec vat_elec cost_elec
+	keep hhid subsidy_elec_direct subsidy_elec_indirect subsidy_elec vat_elec cost_elec social_tranche
 
 	tempfile elec_tmp_dta
 	save `elec_tmp_dta', replace 
