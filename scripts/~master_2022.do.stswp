@@ -75,8 +75,9 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 }
 */
 
-global namexls	"simul_results_2022_ReformMitigations - 2021_cost19_158"
-*global namexls	"simul_results_2022_ReformMitigations - 2021_cost22_139"
+*global namexls	"simul_results_2022_ReformMitigations - 2021_cost19_158"
+*global namexls	"simul_results_mitigation_MAIN - D"
+global namexls	"simul_results - ref - DiffCostsB"
 *global namexls	"simul_results_2022_ReformMitigations"
 *global namexls	"simul_results_VAT"
 global numscenarios 1 2 3 4

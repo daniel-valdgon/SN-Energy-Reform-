@@ -75,9 +75,9 @@ foreach adof in apoverty ftools gtools ereplace mdesc{
 */
 
 *global namexls	"simul_results_New_SocialTranche_Reform2_p1"
-global namexls	"simul_results_ReformMitigations - 2018"
-*global namexls	"simul_results_2022_ReformMitigations_copy"
-*global namexls	"simul_results_2022_ReformMitigations - tranchexempt"
+*global namexls	"simul_results_ReformMitigations - 2018"
+*global namexls	"simul_results_mitigation_MAIN - B"
+global namexls	"simul_results - 2018 - DiffCostsC"
 global numscenarios 1 2 3 4
 
 
@@ -153,7 +153,7 @@ export excel "$p_res/${namexls}.xlsx", sheet(calibdata) first(variable) sheetrep
 *Tables of electricity consumption type per decile 
 
 *loop para tener esta tabla para cada scenario
-include "$p_scr/3e_survey_totals.do" // include "$p_scr/2b_fuels_old.do" 
+include "$p_scr/3e_survey_totals_2018.do" // include "$p_scr/2b_fuels_old.do" 
 
 
 
